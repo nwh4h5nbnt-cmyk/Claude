@@ -1,0 +1,8 @@
+# Loose QR PNGs — the committed per-level .zip files in output/qr_images/ are
+# what you actually send to a printer. Running generate_cards.py unpacks fresh
+# PNGs here; zip them up again before committing a new batch.
+output/qr_images/*/
+
+__pycache__/
+*.pyc
+.DS_Store
