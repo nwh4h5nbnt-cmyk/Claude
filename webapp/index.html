@@ -1,0 +1,706 @@
+<title>Guild Ranks — loyalty scheme prototype</title>
+
+<style>
+  /* ---------------------------------------------------------------------
+     This prototype commits to a single dark world on purpose: it is a phone
+     screen, used at night, in a bar. A light theme would be a different
+     product. The tokens below hold in both viewer themes by design.
+     --------------------------------------------------------------------- */
+  :root,
+  :root[data-theme="dark"],
+  :root[data-theme="light"] {
+    --ink:        #0C0F26;
+    --ink-deep:   #070915;
+    --surface:    #151A3C;
+    --raised:     #1F2450;
+    --line:       #2C3163;
+    --text:       #E8E5F5;
+    --muted:      #948FB4;
+    --gold:       #E9B84C;
+    --gold-deep:  #7A5A1E;
+    --good:       #57C98A;
+    --bad:        #E2606A;
+
+    --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 32px 20px 64px;
+    background:
+      radial-gradient(1100px 620px at 50% -8%, #1B2050 0%, transparent 62%),
+      var(--ink);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .page { max-width: 1160px; margin: 0 auto; display: flex; flex-direction: column; gap: 36px; }
+
+  /* --- masthead ------------------------------------------------------- */
+
+  .masthead { display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center; }
+  .masthead h1 {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: clamp(28px, 4.4vw, 40px);
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-wrap: balance;
+  }
+  .masthead p { margin: 0; color: var(--muted); font-size: 14px; max-width: 56ch; text-wrap: balance; }
+  .proto-tag {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--gold); border: 1px solid var(--gold-deep); border-radius: 2px; padding: 3px 9px;
+  }
+
+  /* --- two-column stage ----------------------------------------------- */
+
+  .stage { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 32px; align-items: start; }
+  @media (max-width: 860px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+
+  /* --- the phone ------------------------------------------------------ */
+
+  .phone {
+    background: var(--ink-deep);
+    border: 1px solid var(--line);
+    border-radius: 26px;
+    padding: 12px;
+    box-shadow: 0 26px 70px rgba(0,0,0,0.55);
+    position: sticky; top: 24px;
+  }
+  @media (max-width: 860px) { .phone { position: static; } }
+
+  .screen {
+    background: var(--surface);
+    border-radius: 16px;
+    min-height: 540px;
+    padding: 26px 22px;
+    display: flex; flex-direction: column; gap: 20px;
+    overflow: hidden;
+  }
+
+  .screen-head { display: flex; flex-direction: column; gap: 6px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .screen h2 {
+    margin: 0; font-family: var(--serif); font-weight: 400;
+    font-size: 25px; letter-spacing: 0.03em; text-wrap: balance;
+  }
+  .screen p { margin: 0; font-size: 14px; color: var(--muted); }
+  .screen p.body-text { color: var(--text); }
+
+  /* --- forms ---------------------------------------------------------- */
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .field input {
+    font: inherit; font-size: 15px; color: var(--text);
+    background: var(--ink); border: 1px solid var(--line); border-radius: 6px;
+    padding: 11px 12px; width: 100%;
+  }
+  .field input.code-input { font-family: var(--mono); letter-spacing: 0.14em; text-transform: uppercase; }
+  .field input:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; border-color: transparent; }
+
+  .consent { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--muted); }
+  .consent input { margin-top: 3px; accent-color: var(--gold); flex: none; }
+
+  button {
+    font: inherit; cursor: pointer; border-radius: 6px; padding: 12px 16px;
+    border: 1px solid transparent; transition: background-color 120ms ease, border-color 120ms ease;
+  }
+  button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  .btn-primary {
+    background: var(--gold); color: #241A05; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase; font-size: 13px;
+  }
+  .btn-primary:hover { background: #F3C660; }
+
+  .btn-ghost {
+    background: transparent; color: var(--muted); border-color: var(--line);
+    font-size: 13px;
+  }
+  .btn-ghost:hover { border-color: var(--gold-deep); color: var(--text); }
+
+  .spacer { flex: 1; }
+
+  /* --- rank crest ----------------------------------------------------- */
+
+  .crest { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 0; }
+  .crest .numeral {
+    font-family: var(--serif); font-size: 82px; line-height: 1;
+    color: var(--gold); font-variant-numeric: tabular-nums;
+  }
+  .crest .rank-name {
+    font-family: var(--serif); font-size: 17px; letter-spacing: 0.28em;
+    text-transform: uppercase; color: var(--text);
+  }
+  .crest .rank-sub { font-size: 12px; color: var(--muted); letter-spacing: 0.08em; }
+
+  /* --- dice ----------------------------------------------------------- */
+
+  .dice-zone { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .die {
+    width: 92px; height: 92px; display: grid; place-items: center;
+    font-family: var(--serif); font-size: 40px; color: var(--gold);
+    background: var(--raised); border: 1px solid var(--line);
+    border-radius: 12px; font-variant-numeric: tabular-nums;
+  }
+  .die.rolling { animation: shake 420ms ease-in-out infinite; }
+  .die.nat20 { border-color: var(--gold); box-shadow: 0 0 26px rgba(233,184,76,0.4); }
+  @keyframes shake {
+    0%, 100% { transform: translate(0,0) rotate(0deg); }
+    25% { transform: translate(-2px,1px) rotate(-2deg); }
+    75% { transform: translate(2px,-1px) rotate(2deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .die.rolling { animation: none; }
+  }
+  .prize { text-align: center; font-size: 14px; }
+  .prize.win { color: var(--gold); }
+  .prize.none { color: var(--muted); }
+
+  /* --- reject --------------------------------------------------------- */
+
+  .reject-mark {
+    align-self: center; width: 62px; height: 62px; border-radius: 50%;
+    border: 1px solid var(--bad); color: var(--bad);
+    display: grid; place-items: center; font-size: 30px; font-family: var(--serif);
+  }
+  .reason {
+    background: var(--ink); border: 1px solid var(--line); border-left: 2px solid var(--bad);
+    border-radius: 4px; padding: 12px 14px; font-size: 13px; color: var(--text);
+  }
+
+  /* --- right column panels -------------------------------------------- */
+
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .panel-head {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    padding: 14px 16px; border-bottom: 1px solid var(--line);
+  }
+  .panel-head h3 {
+    margin: 0; font-family: var(--serif); font-weight: 400; font-size: 16px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .panel-head .hint { font-size: 12px; color: var(--muted); text-align: right; }
+  .panel-body { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+
+  /* --- card drawer ---------------------------------------------------- */
+
+  .drawer-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+  .card-chip {
+    background: var(--raised); border: 1px solid var(--line); border-radius: 6px;
+    padding: 9px 10px; display: flex; flex-direction: column; gap: 3px; text-align: left;
+    color: var(--text);
+  }
+  .card-chip:hover:not(:disabled) { border-color: var(--gold); }
+  .card-chip:disabled { opacity: 0.32; cursor: not-allowed; }
+  .card-chip .lvl {
+    font-family: var(--serif); font-size: 11px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--gold);
+  }
+  .card-chip .code { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; }
+  .card-chip .state { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* --- tables --------------------------------------------------------- */
+
+  .table-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th {
+    text-align: left; font-weight: 600; font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--muted); padding: 0 10px 7px 0; white-space: nowrap;
+  }
+  td { padding: 7px 10px 7px 0; border-top: 1px solid var(--line); white-space: nowrap; }
+  td.code, td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .empty { color: var(--muted); font-size: 13px; font-style: italic; }
+
+  .pill {
+    display: inline-block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 99px; border: 1px solid currentColor;
+  }
+  .pill.ok { color: var(--good); }
+  .pill.no { color: var(--bad); }
+  .pill.idle { color: var(--muted); }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .note {
+    font-size: 12px; color: var(--muted); border-top: 1px solid var(--line);
+    padding-top: 14px; text-wrap: pretty;
+  }
+  .note strong { color: var(--text); font-weight: 600; }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+</style>
+
+<div class="page">
+
+  <header class="masthead">
+    <span class="proto-tag">Prototype</span>
+    <h1>Guild Ranks</h1>
+    <p>
+      Ten ranks, earned on physical cards, tracked digitally. This is a working model of the
+      member journey — every rule the real validator enforces is enforced here too, so you can
+      try to break it.
+    </p>
+  </header>
+
+  <div class="stage">
+
+    <!-- ============ PHONE ============ -->
+    <div class="phone">
+      <div class="screen" id="screen" role="region" aria-live="polite" aria-label="Member phone screen"></div>
+    </div>
+
+    <!-- ============ RIGHT COLUMN ============ -->
+    <div style="display:flex; flex-direction:column; gap:20px;">
+
+      <section class="panel">
+        <div class="panel-head">
+          <h3>Card drawer</h3>
+          <span class="hint">Behind the bar. Tap a card to<br>simulate scanning its QR.</span>
+        </div>
+        <div class="panel-body">
+          <div class="drawer-grid" id="drawer"></div>
+          <p class="note">
+            <strong>In the real thing</strong> staff hand over a physical card and the member scans
+            the QR on its back. There is no QR to scan in a prototype, so tapping a card here stands
+            in for that. Spent cards grey out — codes are single-use.
+          </p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h3>Members</h3>
+          <span class="hint">What your spreadsheet<br>would show</span>
+        </div>
+        <div class="panel-body">
+          <div class="table-scroll"><table id="members-table"></table></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h3>Activation log</h3>
+          <span class="hint">Every scan, accepted<br>or refused</span>
+        </div>
+        <div class="panel-body">
+          <div class="table-scroll"><table id="log-table"></table></div>
+          <div class="controls">
+            <button class="btn-ghost" id="btn-reset">Reset prototype</button>
+            <button class="btn-ghost" id="btn-demo">Load a demo member at LVL 4</button>
+          </div>
+          <p class="note">
+            <strong>Try to break it.</strong> Scan a card twice, scan a rank you have not earned,
+            or activate with an email that never signed up. Each is refused with a reason, and
+            nothing in Members or Cards changes.
+          </p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // --- Configuration ------------------------------------------------------
+  // Rank names are yours to change — they only affect what members see.
+
+  const RANKS = ["Unranked", "Novice", "Apprentice", "Adept", "Veteran", "Champion",
+                 "Elite", "Master", "Grandmaster", "Legend", "Mythic"];
+
+  // What the d20 pays out. Adjust freely: a nat 20 is the headline prize, and
+  // the 15+ band exists so a roll feels worth making more than 5% of the time.
+  const PRIZES = [
+    { min: 20, label: "NATURAL 20", text: "Legendary drop — house prize, staff's discretion." },
+    { min: 15, label: "Lucky roll",  text: "Minor drop — a free soft drink or a side quest token." },
+    { min: 1,  label: "No drop",     text: "Nothing this time. You roll again at the next rank." },
+  ];
+
+  // Real codes, lifted from the generated launch batch.
+  const SEED_CARDS = [
+    {code:"A5M2KC",level:1},{code:"P25DQ6",level:1},{code:"ENQDF3",level:1},
+    {code:"MWRXAA",level:2},{code:"BDVJFE",level:2},{code:"GXM5J6",level:2},
+    {code:"NKAN77",level:3},{code:"KQRMEY",level:3},{code:"XY8VCM",level:3},
+    {code:"FBZGZD",level:4},{code:"S6KKPV",level:4},{code:"FK4ZHE",level:4},
+    {code:"Y8N6RR",level:5},{code:"ZBZ789",level:5},{code:"QXANN7",level:5},
+    {code:"YACWNY",level:6},{code:"H52RA7",level:6},{code:"ZJADGR",level:6},
+    {code:"JHWXYE",level:7},{code:"MDBKW5",level:7},{code:"RH3KTZ",level:7},
+    {code:"MKHA79",level:8},{code:"M8GMZZ",level:8},{code:"YHBQF7",level:8},
+    {code:"KX3YVH",level:9},{code:"MAARHX",level:9},{code:"DRK6R9",level:9},
+    {code:"ZKVSE7",level:10},{code:"SCMJ3T",level:10},{code:"AP5QKC",level:10},
+  ];
+
+  const STORE_KEY = "guild-ranks-prototype-v1";
+
+  // --- State --------------------------------------------------------------
+
+  const blank = () => ({
+    members: [],
+    cards: SEED_CARDS.map(c => ({ ...c, status: "unissued", member: "", activatedAt: "" })),
+    log: [],
+    currentEmail: "",
+  });
+
+  let state;
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      state = raw ? JSON.parse(raw) : blank();
+    } catch {
+      state = blank();
+    }
+  }
+
+  function save() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch { /* private mode */ }
+  }
+
+  const findMember = email => state.members.find(m => m.email === email.trim().toLowerCase());
+  const findCard = code => state.cards.find(c => c.code === code.trim().toUpperCase());
+
+  // --- The rules ----------------------------------------------------------
+  // Deliberately identical to Code.gs and automation_script.js. If you change
+  // one, change all three.
+
+  function validate(code, email) {
+    const card = findCard(code);
+    if (!card) return { result: "rejected", reason: "No such card code" };
+    if (card.status === "activated") return { result: "rejected", reason: "Card already activated" };
+    if (card.status === "void") return { result: "rejected", reason: "Card has been voided" };
+
+    const member = findMember(email);
+    if (!member) {
+      return { result: "rejected", reason: "No member with that email — they need to sign up first" };
+    }
+    if (member.level >= card.level) {
+      return { result: "rejected", reason: `Already level ${member.level} — this is a level ${card.level} card` };
+    }
+    if (member.level !== card.level - 1) {
+      return { result: "rejected",
+               reason: `Cannot skip levels — they are level ${member.level}, this card is level ${card.level}` };
+    }
+
+    card.status = "activated";
+    card.member = member.email;
+    card.activatedAt = new Date().toISOString();
+    member.level = card.level;
+    member.lastActivated = card.activatedAt;
+
+    return { result: "activated", reason: `Promoted to level ${card.level}`, level: card.level, member };
+  }
+
+  function record(code, email, result, reason) {
+    state.log.unshift({
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+      code: (code || "—").toUpperCase(), email, result, reason,
+    });
+    state.log = state.log.slice(0, 12);
+    save();
+  }
+
+  // --- Screens ------------------------------------------------------------
+
+  const screen = document.getElementById("screen");
+  let view = { name: "join" };
+
+  const esc = s => String(s).replace(/[&<>"']/g, ch =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+
+  function go(name, data) { view = { name, ...data }; render(); }
+
+  function screenJoin() {
+    return `
+      <div class="screen-head">
+        <span class="eyebrow">Scanned from a table standee</span>
+        <h2>Join the guild</h2>
+        <p>Ten ranks. Physical cards. Roll a d20 every time you level up.</p>
+      </div>
+      <div class="field">
+        <label for="j-name">Name</label>
+        <input id="j-name" type="text" autocomplete="name" placeholder="Sam Okafor">
+      </div>
+      <div class="field">
+        <label for="j-email">Email</label>
+        <input id="j-email" type="email" autocomplete="email" placeholder="sam@example.com">
+      </div>
+      <label class="consent">
+        <input id="j-consent" type="checkbox">
+        <span>Email me about events, early ticket access and member offers.</span>
+      </label>
+      <div class="spacer"></div>
+      <button class="btn-primary" id="j-submit">Sign up</button>
+      <p style="font-size:12px;">Signing up makes you <strong>Unranked</strong>. Your first card is what makes you LVL 1.</p>
+    `;
+  }
+
+  function screenWelcome() {
+    const m = findMember(view.email);
+    const lvl = m.level;
+    const next = lvl + 1;
+
+    // Fresh signups are told to go and collect. Everyone else is mid-run, so
+    // the screen becomes their standing rank card instead.
+    const instruction = lvl === 0
+      ? `Show this screen to bar staff to claim your <strong>LVL 1 card</strong>.`
+      : `Fill this card with stamps, then show it to staff to claim your <strong>LVL ${next} card</strong>.`;
+
+    return `
+      <div class="screen-head">
+        <span class="eyebrow">${lvl === 0 ? "Confirmed" : "Your rank"}</span>
+        <h2>${lvl === 0 ? `Welcome, ${esc(m.name || "player")}` : esc(m.name || "Player")}</h2>
+      </div>
+      <div class="crest">
+        <div class="numeral">${lvl}</div>
+        <div class="rank-name">${esc(RANKS[lvl])}</div>
+        <div class="rank-sub">${lvl === 0 ? "not yet carrying a card"
+                                : lvl === 10 ? "the ladder is complete" : `next rank at LVL ${next}`}</div>
+      </div>
+      <p class="body-text">${lvl === 10 ? "You have run the whole ladder. Completion perks are yours." : instruction}</p>
+      <div class="spacer"></div>
+      ${lvl === 10 ? "" : `<p>Then scan the QR on its back to activate it and take your roll.</p>`}
+      <button class="btn-ghost" id="w-back">Sign up as someone else</button>
+    `;
+  }
+
+  function screenActivate() {
+    const card = findCard(view.code);
+    return `
+      <div class="screen-head">
+        <span class="eyebrow">Scanned from a card back</span>
+        <h2>Activate LVL ${card.level} card</h2>
+        <p>Confirm your email to attach this card to your run.</p>
+      </div>
+      <div class="field">
+        <label for="a-code">Card code</label>
+        <input id="a-code" class="code-input" type="text" value="${esc(card.code)}">
+      </div>
+      <div class="field">
+        <label for="a-email">Confirm your email</label>
+        <input id="a-email" type="email" autocomplete="email"
+               value="${esc(state.currentEmail)}" placeholder="sam@example.com">
+      </div>
+      <div class="spacer"></div>
+      <button class="btn-primary" id="a-submit">Activate</button>
+      <p style="font-size:12px;">The code arrives filled in from the QR. It is shown, not hidden — it is printed on the card anyway.</p>
+    `;
+  }
+
+  function screenResult() {
+    if (view.result === "rejected") {
+      return `
+        <div class="screen-head">
+          <span class="eyebrow">Not activated</span>
+          <h2>Something isn't right</h2>
+        </div>
+        <div class="reject-mark" aria-hidden="true">!</div>
+        <p class="body-text">Ask a member of staff — they can sort this out.</p>
+        <div class="reason"><strong>Logged reason:</strong><br>${esc(view.reason)}</div>
+        <div class="spacer"></div>
+        <p style="font-size:12px;">The card was not spent. Nothing changed on your account.</p>
+        <button class="btn-ghost" id="r-back">Back</button>
+      `;
+    }
+
+    const lvl = view.level;
+    return `
+      <div class="screen-head">
+        <span class="eyebrow">Activated</span>
+        <h2>Rank up</h2>
+      </div>
+      <div class="crest">
+        <div class="numeral">${lvl}</div>
+        <div class="rank-name">${esc(RANKS[lvl])}</div>
+        <div class="rank-sub">${lvl === 10 ? "the ladder is complete" : `next rank at LVL ${lvl + 1}`}</div>
+      </div>
+      <div class="dice-zone">
+        <div class="die" id="die" aria-hidden="true">?</div>
+        <div id="prize" class="prize none">Show this screen to staff and roll the d20.</div>
+        <button class="btn-primary" id="roll">Roll for loot</button>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn-ghost" id="r-back">Done</button>
+    `;
+  }
+
+  function render() {
+    const html = { join: screenJoin, welcome: screenWelcome, activate: screenActivate, result: screenResult };
+    screen.innerHTML = html[view.name]();
+    wireScreen();
+    renderDrawer();
+    renderMembers();
+    renderLog();
+  }
+
+  // --- Screen wiring ------------------------------------------------------
+
+  function wireScreen() {
+    const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener("click", fn); };
+
+    on("j-submit", () => {
+      const name = document.getElementById("j-name").value.trim();
+      const email = document.getElementById("j-email").value.trim().toLowerCase();
+      if (!name || !email) { alert("Name and email are both needed."); return; }
+
+      if (!findMember(email)) {
+        state.members.push({
+          email, name, level: 0,
+          consent: document.getElementById("j-consent").checked,
+          joined: new Date().toLocaleDateString(),
+          lastActivated: "",
+        });
+      }
+      state.currentEmail = email;
+      save();
+      go("welcome", { email });
+    });
+
+    on("w-back", () => { state.currentEmail = ""; save(); go("join"); });
+    on("r-back", () => {
+      go(state.currentEmail ? "welcome" : "join", { email: state.currentEmail });
+    });
+
+    on("a-submit", () => {
+      const code = document.getElementById("a-code").value.trim().toUpperCase();
+      const email = document.getElementById("a-email").value.trim().toLowerCase();
+      if (!email) { alert("Confirm your email to activate."); return; }
+
+      const out = validate(code, email);
+      record(code, email, out.result, out.reason);
+      if (out.result === "activated") state.currentEmail = email;
+      save();
+      go("result", out);
+    });
+
+    const rollBtn = document.getElementById("roll");
+    if (rollBtn) rollBtn.addEventListener("click", rollDie);
+  }
+
+  function rollDie() {
+    const die = document.getElementById("die");
+    const prize = document.getElementById("prize");
+    const btn = document.getElementById("roll");
+    btn.disabled = true;
+    btn.style.display = "none";
+
+    const final = 1 + Math.floor(Math.random() * 20);
+    const settle = () => {
+      die.classList.remove("rolling");
+      die.textContent = final;
+      if (final === 20) die.classList.add("nat20");
+      const band = PRIZES.find(p => final >= p.min);
+      prize.className = "prize " + (final >= 15 ? "win" : "none");
+      prize.innerHTML = `<strong>${esc(band.label)}</strong><br>${esc(band.text)}`;
+    };
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { settle(); return; }
+
+    die.classList.add("rolling");
+    let ticks = 0;
+    const spin = setInterval(() => {
+      die.textContent = 1 + Math.floor(Math.random() * 20);
+      if (++ticks > 13) { clearInterval(spin); settle(); }
+    }, 55);
+  }
+
+  // --- Right column -------------------------------------------------------
+
+  function renderDrawer() {
+    const drawer = document.getElementById("drawer");
+    drawer.innerHTML = state.cards.map(c => `
+      <button class="card-chip" data-code="${esc(c.code)}" ${c.status !== "unissued" ? "disabled" : ""}>
+        <span class="lvl">LVL ${c.level}</span>
+        <span class="code">${esc(c.code)}</span>
+        <span class="state">${c.status === "unissued" ? "in stack" : c.status}</span>
+      </button>
+    `).join("");
+
+    drawer.querySelectorAll("button:not(:disabled)").forEach(b => {
+      b.addEventListener("click", () => go("activate", { code: b.dataset.code }));
+    });
+  }
+
+  function renderMembers() {
+    const t = document.getElementById("members-table");
+    if (!state.members.length) {
+      t.innerHTML = `<tr><td class="empty" style="border:0;">No members yet — sign up on the phone.</td></tr>`;
+      return;
+    }
+    t.innerHTML = `
+      <thead><tr><th>Email</th><th>Name</th><th>Level</th><th>Rank</th><th>Consent</th></tr></thead>
+      <tbody>${state.members.map(m => `
+        <tr>
+          <td class="code">${esc(m.email)}</td>
+          <td>${esc(m.name)}</td>
+          <td class="num">${m.level}</td>
+          <td>${esc(RANKS[m.level])}</td>
+          <td>${m.consent ? "yes" : "no"}</td>
+        </tr>`).join("")}</tbody>`;
+  }
+
+  function renderLog() {
+    const t = document.getElementById("log-table");
+    if (!state.log.length) {
+      t.innerHTML = `<tr><td class="empty" style="border:0;">Nothing scanned yet.</td></tr>`;
+      return;
+    }
+    t.innerHTML = `
+      <thead><tr><th>Time</th><th>Code</th><th>Result</th><th>Reason</th></tr></thead>
+      <tbody>${state.log.map(l => `
+        <tr>
+          <td class="num">${esc(l.time)}</td>
+          <td class="code">${esc(l.code)}</td>
+          <td><span class="pill ${l.result === "activated" ? "ok" : "no"}">${esc(l.result)}</span></td>
+          <td style="white-space:normal; color:var(--muted);">${esc(l.reason)}</td>
+        </tr>`).join("")}</tbody>`;
+  }
+
+  // --- Prototype controls -------------------------------------------------
+
+  document.getElementById("btn-reset").addEventListener("click", () => {
+    state = blank(); save(); go("join");
+  });
+
+  document.getElementById("btn-demo").addEventListener("click", () => {
+    const email = "demo@example.com";
+    let m = findMember(email);
+    if (!m) {
+      m = { email, name: "Demo Player", level: 4, consent: true,
+            joined: new Date().toLocaleDateString(), lastActivated: "" };
+      state.members.push(m);
+    }
+    m.level = 4;
+    state.currentEmail = email;
+    save();
+    go("welcome", { email });
+  });
+
+  // --- Boot ---------------------------------------------------------------
+
+  load();
+  go(state.currentEmail && findMember(state.currentEmail) ? "welcome" : "join",
+     { email: state.currentEmail });
+})();
+</script>

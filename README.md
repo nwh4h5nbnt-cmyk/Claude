@@ -27,24 +27,37 @@ Two pieces of software exist here and neither asks you to program:
 - **`generate_cards.py`** makes the codes and QR images. It has already been
   run — its output is sitting in `output/`. You only run it again for reprints,
   and it's one command that someone can run for you.
-- **`airtable/automation_script.js`** is the validator. You copy it, paste it
-  into Airtable, and never look at it again.
+- **`google-sheets/Code.gs`** is the validator. You copy it, paste it into your
+  spreadsheet's script editor, and never look at it again.
 
-Everything else — forms, landing pages, confirmation screens, emails — is
-clicked together in Airtable. No hosting, no server, no monthly bill until your
-Cards table outgrows the free tier.
+Everything else — forms, landing pages, confirmation screens — is clicked
+together in Google Forms. No hosting, no server, no monthly bill.
 
 ---
 
 ## Start here
 
-1. Read **`airtable/SETUP.md`** and follow it. About an hour, start to finish.
-2. Come back and regenerate the QR codes against your real form URL (setup
-   step 7). **The QR images currently in this repo point at a placeholder and
+1. Play with the **prototype** in `webapp/` to see the journey end to end
+   before you build anything. Open `webapp/index.html` in a browser.
+2. Read **`google-sheets/SETUP.md`** and follow it. About an hour, start to
+   finish.
+3. Come back and regenerate the QR codes against your real form URL (setup
+   step 8). **The QR images currently in this repo point at a placeholder and
    will not work** — they exist so you can see the format and check the print
    layout.
-3. Send `output/for_printer/level_01_*.csv` and your level 1 artwork to a
+4. Send `output/for_printer/level_01_*.csv` and your level 1 artwork to a
    printer. Print levels 1–3 first; nobody reaches level 4 in week one.
+
+---
+
+## What's where
+
+| Folder | What it is |
+|---|---|
+| `google-sheets/` | **The route you're using.** Apps Script validator, its tests, and the click-by-click setup guide. |
+| `airtable/` | The same system built on Airtable instead. Kept in case you outgrow Sheets — Airtable's automation builder is friendlier, at roughly £16–20/month once your Cards table passes 1,000 rows. |
+| `webapp/` | A clickable prototype of the member journey. No backend — it fakes the database in your browser so you can try to break the rules. |
+| `output/` | The generated card codes and everything your printer needs. |
 
 ---
 
@@ -107,15 +120,21 @@ put it in the least precious spot on the back, away from the stamp grid.
 
 ## Running the tests
 
-Only relevant if someone changes the validator:
+Only relevant if someone changes a validator:
 
 ```
-node airtable/test_automation_script.js
+node google-sheets/test_code.js          # 19 tests
+node airtable/test_automation_script.js  # 13 tests
 ```
 
-13 tests covering every accept and reject path — level skipping, reused cards,
-voided cards, unknown emails, and the guarantee that a rejected scan changes
-nothing except the log.
+Both fake enough of their platform's API to run the real validator unmodified,
+covering every accept and reject path — level skipping, reused cards, voided
+cards, unknown emails, duplicate signups, and the guarantee that a rejected
+scan changes nothing except the log.
+
+**The rules live in three places** — `google-sheets/Code.gs`,
+`airtable/automation_script.js`, and the prototype in `webapp/index.html`. They
+are deliberately identical. If you change one, change all three.
 
 ---
 
@@ -131,10 +150,16 @@ stock from the database. Count the stack instead.
 tracking individual stamps would mean a scan every visit, and rank is all the
 CRM segmentation actually needs.
 
-**The confirmation screen is static.** Airtable forms can't show a personalised
-"LVL 4 ACTIVATED" message. Staff are standing there watching the scan, so it
-rarely matters. Fixing it properly means a small custom web app, which is the
-sensible upgrade once the scheme has proven itself.
+**The confirmation screen is static.** Google Forms can't show a personalised
+"LVL 4 ACTIVATED" message — its confirmation is fixed text. Staff are standing
+there watching the scan, so it rarely matters. The `webapp/` prototype shows
+what the dynamic version would feel like if you decide it's worth building.
+
+**The card code is visible on the activation form.** Google Forms has no hidden
+fields, so the prefilled code shows on screen. Harmless — the same code is
+printed on the card in the member's hand, and typing a different one gets them
+nowhere unless they happen to hold that exact unused card at exactly the right
+rank.
 
 **Stamp fraud is a social problem, not a technical one.** Unique card codes
 protect the database completely, but nothing stops a forged stamp. Use a
