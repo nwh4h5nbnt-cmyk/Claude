@@ -71,9 +71,35 @@ together in Google Forms. No hosting, no server, no monthly bill.
 | `qr_images/` | One PNG per card, zipped per level | Your printer, if they merge from images rather than URLs. Send them the zip for the level being printed. |
 | `proof_sheets/` | A4 sheets, QRs at true 20mm size | Checking a batch scans before you accept delivery. Also printable onto adhesive A4 and cut up, if you go the sticker route instead of variable-data printing. |
 
-Current run: **990 cards** across all ten levels, tapering from 300 at level 1
-to 20 at level 10. Generating codes is free; only printing costs money, so
-having all ten levels ready costs you nothing.
+Current run: **675 cards** across all ten levels, from 250 at level 1 down to
+25 at each of the top ranks. Those quantities come out of
+`estimate_print_run.py` — see below. Generating codes is free; only printing
+costs money, so having all ten levels ready costs you nothing.
+
+---
+
+## How many to actually print
+
+```
+python3 estimate_print_run.py --signups 250 --weeks 26
+```
+
+It simulates individual members visiting, collecting stamps and levelling up,
+then counts the cards actually handed out before the window closes.
+
+Two things shape the answer, and **time matters more than drop-off**: a rank
+takes weeks of visits to clear, so almost nobody reaches the upper ranks inside
+your first six months however keen they are. That's why the top of the ladder
+needs so few cards.
+
+The single biggest lever is **how fast people climb** — stamps per card, and
+stamps per visit. Halving the stamps needed per card roughly triples demand for
+ranks 5 and up. Signup volume barely changes the shape, only the scale: level 1
+is always about 80% of signups, and level 2 is always about 45% of level 1.
+
+Re-run it with your own numbers once you know them. Better still, re-run it
+after a month of real data — by then you'll know your true signup rate and how
+quickly cards are actually filling.
 
 ---
 

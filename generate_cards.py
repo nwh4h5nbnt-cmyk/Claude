@@ -39,21 +39,28 @@ ALPHABET = LETTERS + DIGITS
 
 CODE_LENGTH = 6
 
-# How many cards to make per level, first run. Levels taper because most
-# members never reach the top ranks. Generating codes is free; only printing
-# costs money, so it is fine to generate all ten levels now and print the
-# lower ones first.
+# How many cards to make per level, first run. These come out of
+# estimate_print_run.py at its default assumptions: 250 signups over a
+# six-month window, six stamps per card, one stamp per visit.
+#
+# The shape is driven as much by time as by drop-off — a rank takes weeks of
+# visits to clear, so almost nobody reaches the top ranks inside the first
+# window however keen they are. Re-run the estimator with your own numbers if
+# they turn out different.
+#
+# Generating codes is free; only printing costs money. Generate all ten levels
+# now and print the lower ones first.
 DEFAULT_QUANTITIES = {
-    1: 300,
-    2: 200,
-    3: 150,
-    4: 100,
-    5: 75,
-    6: 50,
-    7: 40,
-    8: 30,
+    1: 250,
+    2: 125,
+    3: 75,
+    4: 50,
+    5: 50,
+    6: 25,
+    7: 25,
+    8: 25,
     9: 25,
-    10: 20,
+    10: 25,
 }
 
 PLACEHOLDER_URL = "https://REPLACE-ME.link/go"
