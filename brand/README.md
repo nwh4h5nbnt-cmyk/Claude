@@ -17,15 +17,35 @@ The white-on-black artwork is close to ideal for this: PQ makes mid-tones read
 
 ## Doing it
 
-Save the master artwork as `brand/logo.png`, then:
+Save the master artwork as `brand/logo.png`. Then, from the top of the repo:
+
+**macOS or Linux**
 
 ```
-pip install pillow
-./brand/glow.sh
+python3 -m pip install pillow
+python3 brand/glow.py
+```
+
+**Windows**
+
+```
+python -m pip install pillow
+python brand\glow.py
 ```
 
 Three files appear in `brand/out/`, and the script checks each one really
-carries its HDR tag before it says it's done.
+carries its HDR tag before it says it's done. If something is missing it tells
+you what to do about it rather than throwing an error at you.
+
+If you'd rather not type a path, `./brand/glow.sh` does the same thing on macOS
+and Linux — it just calls `glow.py` for you. There is no `.sh` on Windows,
+which is why the Python command above is the one to reach for.
+
+Artwork somewhere else? Point at it directly:
+
+```
+python3 brand/glow.py ~/Desktop/whatever-its-called.png
+```
 
 | File | Where it goes |
 |---|---|
