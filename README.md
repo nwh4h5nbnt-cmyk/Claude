@@ -58,6 +58,7 @@ together in Google Forms. No hosting, no server, no monthly bill.
 | `airtable/` | The same system built on Airtable instead. Kept in case you outgrow Sheets — Airtable's automation builder is friendlier, at roughly £16–20/month once your Cards table passes 1,000 rows. |
 | `webapp/` | A clickable prototype of the member journey. No backend — it fakes the database in your browser so you can try to break the rules. |
 | `output/` | The generated card codes and everything your printer needs. |
+| `brand/` | Makes the logo glow on HDR screens in a LinkedIn or Slack feed. Nothing to do with the card system — see `brand/README.md`. |
 
 ---
 
