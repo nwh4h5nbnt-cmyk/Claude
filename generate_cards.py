@@ -39,6 +39,10 @@ ALPHABET = LETTERS + DIGITS
 
 CODE_LENGTH = 6
 
+# Modules of clear space around each QR, baked into the PNG. The spec requires
+# four; anything less and some symbols quietly stop scanning.
+QUIET_ZONE = 4
+
 # How many cards to make per level, first run. These come out of
 # estimate_print_run.py at its default assumptions: 250 signups over a
 # six-month window, six stamps per card, one stamp per visit.
@@ -192,12 +196,19 @@ def write_airtable_csv(rows, batch_slug):
 
 
 def write_qr_images(rows, level, batch_slug):
-    """One PNG per card, named after its code."""
+    """One PNG per card, named after its code.
+
+    border=4 is not cosmetic. The QR spec mandates a four-module quiet zone,
+    and at border=2 roughly one symbol in fifty became unreadable — valid, but
+    refused by stricter decoders. That failure mode is vicious in print: most
+    cards work, a scattered few never do, and there is no way to tell which
+    from looking at them.
+    """
     d = os.path.join(OUTPUT_DIR, "qr_images", f"level_{level:02d}_{batch_slug}")
     os.makedirs(d, exist_ok=True)
     for r in rows:
         qr = segno.make(r["qr_url"], error="q")
-        qr.save(os.path.join(d, f"{r['card_code']}.png"), scale=10, border=2)
+        qr.save(os.path.join(d, f"{r['card_code']}.png"), scale=10, border=QUIET_ZONE)
     return d
 
 
@@ -249,6 +260,88 @@ def write_proof_pdf(rows, level, batch_slug, qr_dir):
 
 # ---------------------------------------------------------------------------
 
+def verify_images(rows):
+    """Read back every QR that was just written and check it says what it should.
+
+    Worth the few seconds. A QR can be generated perfectly and still be
+    unreadable — too small a quiet zone did exactly that here, and the damage
+    only shows up once cards are in people's hands. Generating and verifying
+    are genuinely different operations, so this does not trust the writer.
+    """
+    try:
+        import cv2
+    except ImportError:
+        print("\n(Skipping scan check — install opencv-python-headless to enable it.)")
+        return 0
+
+    detector = cv2.QRCodeDetector()
+    unreadable, wrong = [], []
+
+    for r in rows:
+        path = os.path.join(OUTPUT_DIR, "qr_images",
+                            f"level_{int(r['level']):02d}_"
+                            f"{r['batch'].rsplit(' L', 1)[0].replace(' ', '-').replace('/', '-')}",
+                            f"{r['card_code']}.png")
+        if not os.path.exists(path):
+            unreadable.append(r["card_code"])
+            continue
+        data, _, _ = detector.detectAndDecode(cv2.imread(path))
+        if not data:
+            unreadable.append(r["card_code"])
+        elif data != r["qr_url"]:
+            wrong.append(r["card_code"])
+
+    if wrong:
+        print("\n" + "!" * 70, file=sys.stderr)
+        print("SCAN CHECK FAILED — do not print.", file=sys.stderr)
+        print(f"  {len(wrong)} image(s) decoded to the wrong address: "
+              f"{', '.join(wrong[:6])}", file=sys.stderr)
+        print("!" * 70, file=sys.stderr)
+        return None
+
+    if not unreadable:
+        print(f"\nScan check: all {len(rows)} QR images read back correctly.")
+    return unreadable
+
+
+def quarantine(rows, bad_codes):
+    """Drop codes the scan check could not read from everything printable.
+
+    Some symbols are valid but sit awkwardly for a given decoder. Rather than
+    argue about whether a particular phone would cope, they are simply never
+    printed — codes are free and cards are not. The rows stay in the master
+    list so the code can never be reissued, and are listed for voiding in the
+    spreadsheet so nobody wonders where they went.
+    """
+    bad = set(bad_codes)
+    keep = [r for r in rows if r["card_code"] not in bad]
+
+    path = os.path.join(OUTPUT_DIR, "do_not_print.csv")
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=["card_code", "level", "reason"])
+        w.writeheader()
+        for r in rows:
+            if r["card_code"] in bad:
+                w.writerow({"card_code": r["card_code"], "level": r["level"],
+                            "reason": "failed scan check"})
+
+    groups = {}
+    for r in keep:
+        level = int(r["level"])
+        label = r["batch"].rsplit(f" L{level}", 1)[0]
+        groups.setdefault((level, label), []).append(r)
+
+    for (level, label), group in groups.items():
+        slug = label.replace(" ", "-").replace("/", "-")
+        write_printer_csv(group, level, slug)
+        write_designer_csv(group, level, slug)
+
+    print(f"\n{len(bad)} code(s) held back from printing: {', '.join(sorted(bad))}")
+    print(f"Printer and designer files rewritten without them.")
+    print(f"Listed in {path} — set these rows to 'void' in the Cards tab.")
+    return 0
+
+
 def retarget(rows, url_template):
     """Point every existing code at a new address and redraw its QR.
 
@@ -285,6 +378,12 @@ def retarget(rows, url_template):
         print(f"Level {level:>2}  {len(group):>4} cards redrawn   ({label})")
 
     write_master(MASTER_CSV, rows)
+
+    bad = verify_images(rows)
+    if bad is None:
+        return 1
+    if bad:
+        quarantine(rows, bad)
 
     print(f"\nRe-aimed {len(rows)} existing codes. No new codes were created.")
     print(f"QR codes now point at {url_template.replace('{code}', 'XXXXXX')}")
@@ -388,6 +487,12 @@ def main():
     if len(all_codes) != len(set(all_codes)):
         print("\nSTOP — duplicate codes detected. Do not print. Re-run.", file=sys.stderr)
         return 1
+
+    bad = verify_images(all_new)
+    if bad is None:
+        return 1
+    if bad:
+        quarantine(all_new, bad)
 
     if "REPLACE-ME" in url_template:
         print("\n" + "!" * 70)
