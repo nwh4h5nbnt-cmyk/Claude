@@ -109,13 +109,21 @@ Never regenerate or reuse a code — only ever add new ones. The script reads
 `master_codes.csv` first and guarantees new codes don't collide:
 
 ```
-python3 generate_cards.py --level 1 --count 300 \
-  --base-url "https://your-real-url/go" \
-  --batch "2026-11-reprint"
+python3 generate_cards.py --level 1 --count 50 --batch "2026-11-reprint"
 ```
 
-Then import the new `for_airtable/` CSV into Airtable, and send the new
-`for_printer/` CSV to your printer with the same artwork as last time.
+You don't need to give it the form address again. It reads the last batch's
+URL out of `master_codes.csv` and reuses it, then prints what it picked so you
+can check. Months later nobody remembers the exact prefill link, and getting it
+slightly wrong would produce a stack of dead cards that look perfectly fine.
+
+Pass `--base-url` or `--url-template` only if the address has genuinely
+changed.
+
+You get a **new CSV containing only the new codes** — the existing one is never
+touched. Import that into the `Cards` tab (it appends, so nobody's progress is
+affected) and send the matching `for_printer/` CSV to your printer with the
+same artwork as last time.
 
 Levels are independent — reprinting level 1 doesn't affect anything else.
 

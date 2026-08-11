@@ -101,6 +101,22 @@ def load_existing(path):
     return rows, {r["card_code"] for r in rows}
 
 
+def derive_template(rows):
+    """Work out the URL pattern a previous run used, from the master list.
+
+    Reprints happen months later, by which point nobody remembers the exact
+    form address. Rather than make them find it again — and silently produce
+    dead QR codes if they get it wrong — recover it from the last batch.
+    """
+    if not rows:
+        return None
+    last = rows[-1]
+    code, url = last.get("card_code", ""), last.get("qr_url", "")
+    if not code or code not in url:
+        return None
+    return url.replace(code, "{code}")
+
+
 def generate_batch(count, taken):
     """`count` fresh codes, none of which already exist."""
     new = []
@@ -254,20 +270,29 @@ def main():
     if args.base_url and args.url_template:
         p.error("use --base-url or --url-template, not both")
 
-    if args.url_template:
-        url_template = args.url_template
-        if "{code}" not in url_template:
-            p.error("--url-template must contain {code} so each card differs")
-    elif args.base_url:
-        url_template = args.base_url.rstrip("/") + "?c={code}"
-    else:
-        url_template = DEFAULT_URL_TEMPLATE
-
     batch_slug = args.batch.replace(" ", "-").replace("/", "-")
 
     existing_rows, taken = load_existing(MASTER_CSV)
     if existing_rows:
-        print(f"Found {len(existing_rows)} existing codes — new ones will avoid them.\n")
+        print(f"Found {len(existing_rows)} existing codes — new ones will avoid them.")
+
+    if args.url_template:
+        url_template = args.url_template
+        if "{code}" not in url_template:
+            p.error("--url-template must contain {code} so each card differs")
+        source = "the address you passed in"
+    elif args.base_url:
+        url_template = args.base_url.rstrip("/") + "?c={code}"
+        source = "the address you passed in"
+    else:
+        # No address given: reuse whatever the last batch pointed at, so a
+        # reprint cannot quietly end up aimed somewhere else.
+        inherited = derive_template(existing_rows)
+        url_template = inherited or DEFAULT_URL_TEMPLATE
+        source = "the previous batch" if inherited else "the built-in placeholder"
+
+    print(f"QR codes will point at {url_template.replace('{code}', 'XXXXXX')}")
+    print(f"  (taken from {source})\n")
 
     quantities = ({args.level: args.count} if args.level else DEFAULT_QUANTITIES)
 
