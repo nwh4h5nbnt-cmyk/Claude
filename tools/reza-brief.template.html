@@ -1,0 +1,334 @@
+<title>Guild Ranks — build brief for Reza</title>
+
+<style>
+  :root {
+    --ground:#FAF8F3; --surface:#FFFFFF; --sunk:#F2EEE4; --line:#E3DDCF;
+    --line-soft:#EFEAE0; --text:#1C1B2E; --muted:#6C6884; --gold:#9A6F14;
+    --gold-soft:#F3E7C8; --flag:#A8412F; --flag-soft:#F7E4DF; --ok:#3D6B47;
+    color-scheme: light;
+    --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#0C0F26; --surface:#141936; --sunk:#10142C; --line:#2A2F5C;
+      --line-soft:#1E2347; --text:#E8E5F5; --muted:#948FB4; --gold:#E9B84C;
+      --gold-soft:#2A2314; --flag:#E0796A; --flag-soft:#2E1A18; --ok:#6FBF85;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0C0F26; --surface:#141936; --sunk:#10142C; --line:#2A2F5C;
+    --line-soft:#1E2347; --text:#E8E5F5; --muted:#948FB4; --gold:#E9B84C;
+    --gold-soft:#2A2314; --flag:#E0796A; --flag-soft:#2E1A18; --ok:#6FBF85;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin:0; padding:44px 22px 80px; background:var(--ground); color:var(--text);
+    font-family:var(--sans); font-size:16px; line-height:1.62; -webkit-font-smoothing:antialiased;
+  }
+  .doc { max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:38px; }
+
+  header { display:flex; flex-direction:column; gap:10px; }
+  .kicker { font-family:var(--mono); font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); }
+  h1 { margin:0; font-family:var(--serif); font-weight:400; font-size:clamp(30px,5vw,42px); line-height:1.15; text-wrap:balance; }
+  .standfirst { margin:0; color:var(--muted); font-size:17px; max-width:62ch; text-wrap:pretty; }
+
+  section { display:flex; flex-direction:column; gap:14px; }
+  h2 { margin:0; font-family:var(--serif); font-weight:400; font-size:24px; border-bottom:1px solid var(--line); padding-bottom:9px; text-wrap:balance; }
+  h3 { margin:8px 0 0; font-size:15px; font-weight:700; }
+  p { margin:0; text-wrap:pretty; }
+  .muted { color:var(--muted); }
+  ol, ul { margin:0; padding-left:22px; display:flex; flex-direction:column; gap:8px; }
+  li { text-wrap:pretty; }
+  code { font-family:var(--mono); font-size:0.9em; background:var(--sunk); padding:1.5px 5px; border-radius:2px; border:1px solid var(--line-soft); word-break:break-word; }
+
+  .step-num {
+    font-family:var(--mono); font-size:11px; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--gold); display:block; margin-bottom:2px;
+  }
+
+  .callout { background:var(--gold-soft); border:1px solid var(--gold); border-radius:3px; padding:20px 22px; display:flex; flex-direction:column; gap:9px; }
+  .callout h2 { border:0; padding:0; font-family:var(--sans); font-size:13px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); }
+
+  .warn { background:var(--flag-soft); border-left:3px solid var(--flag); border-radius:2px; padding:15px 18px; display:flex; flex-direction:column; gap:7px; }
+  .warn h3 { margin:0; color:var(--flag); font-size:14px; }
+
+  .table-wrap { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-size:14.5px; min-width:420px; }
+  th { text-align:left; vertical-align:top; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); padding:0 14px 8px 0; font-weight:600; }
+  td { padding:9px 14px 9px 0; border-top:1px solid var(--line); vertical-align:top; }
+  td.k { font-family:var(--mono); font-size:13.5px; white-space:nowrap; }
+
+  .headers {
+    background:var(--sunk); border:1px solid var(--line); border-radius:3px;
+    padding:13px 16px; font-family:var(--mono); font-size:13px; overflow-x:auto; white-space:nowrap;
+  }
+  .headers b { color:var(--gold); font-weight:400; }
+
+  .codewrap { position:relative; }
+  pre {
+    margin:0; background:var(--sunk); border:1px solid var(--line); border-radius:3px;
+    padding:16px; overflow:auto; max-height:340px;
+    font-family:var(--mono); font-size:12px; line-height:1.5;
+  }
+  button.copy {
+    position:absolute; top:9px; right:9px; font:inherit; font-size:12px; cursor:pointer;
+    background:var(--surface); color:var(--text); border:1px solid var(--line);
+    border-radius:3px; padding:5px 11px;
+  }
+  button.copy:hover { border-color:var(--gold); }
+  button.copy:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+  button.copy.done { color:var(--ok); border-color:var(--ok); }
+
+  .handback { background:var(--surface); border:1px solid var(--line); border-radius:3px; padding:22px 24px; display:flex; flex-direction:column; gap:12px; }
+  .handback h2 { border:0; padding:0; }
+</style>
+
+<div class="doc">
+
+  <header>
+    <span class="kicker">Guild Ranks · build brief</span>
+    <h1>Set up the forms and the sheet</h1>
+    <p class="standfirst">
+      Roughly an hour of clicking, plus half an hour trying to break it. Everything you need is on
+      this page — the script is here in full, and the card data comes as a CSV attached separately.
+    </p>
+  </header>
+
+  <div class="callout">
+    <h2>What this is</h2>
+    <p>
+      A loyalty scheme on physical cards. Each card carries a unique code as a QR on its back. When a
+      member scans it, we check the code is real, unused, and exactly one rank above where they
+      currently are — then promote them and burn the code so it can never be used again.
+    </p>
+    <p class="muted">
+      You're building the plumbing: one spreadsheet, two Google Forms, one script. Bar staff never
+      type anything.
+    </p>
+  </div>
+
+  <section>
+    <h2><span class="step-num">Step 1</span>Spreadsheet and three tabs</h2>
+    <p>New Google Sheet called <strong>Loyalty</strong>. Three tabs, named exactly:</p>
+    <p class="headers"><b>Members</b> · <b>Cards</b> · <b>Activation log</b></p>
+    <p>Headers go in row 1. The script finds columns <em>by name</em>, so spelling and capitalisation
+      matter — but order doesn't, and columns can be added later without breaking anything.</p>
+
+    <p class="muted"><strong>Members</strong></p>
+    <p class="headers">Email │ Name │ Level │ Joined │ Last activated │ Consent</p>
+
+    <p class="muted"><strong>Cards</strong></p>
+    <p class="headers">Card code │ Level │ Status │ Member email │ Activated at │ Batch</p>
+
+    <p class="muted"><strong>Activation log</strong></p>
+    <p class="headers">Time │ Submitted code │ Submitted email │ Result │ Reason</p>
+
+    <p class="muted">Freeze row 1 on each (<code>View → Freeze → 1 row</code>). Set the
+      <code>Level</code> column on Members to plain Number formatting — if it ends up as text, levels
+      silently stop updating.</p>
+  </section>
+
+  <section>
+    <h2><span class="step-num">Step 2</span>Import the cards</h2>
+    <p>On the <strong>Cards</strong> tab: <code>File → Import → Upload</code>, choose the attached
+      <code>cards_import_2026-08-launch.csv</code>.</p>
+    <p>Import location: <strong>Append to current sheet</strong>. Separator: detect automatically.</p>
+    <p class="muted">675 rows should land, every one showing <code>unissued</code>. The
+      <code>Member email</code> and <code>Activated at</code> columns stay empty — the script fills
+      those in.</p>
+  </section>
+
+  <section>
+    <h2><span class="step-num">Step 3</span>Signup form</h2>
+    <p>This one sits behind the QR on table standees. New form, called something like
+      <em>Join the Guild</em>. Three questions, titled <strong>exactly</strong> as below — the script
+      reads answers by question title.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Question title</th><th>Type</th><th>Required</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Name</td><td>Short answer</td><td>Yes</td></tr>
+          <tr><td class="k">Email</td><td>Short answer</td><td>Yes</td></tr>
+          <tr><td class="k">Consent</td><td>Checkboxes, one option</td><td>No</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The single <code>Consent</code> option should read roughly: <em>"Email me about events, early
+      ticket access and member offers."</em></p>
+
+    <p><strong>Confirmation message:</strong> <em>"You're in. Show this screen to bar staff to claim
+      your LVL 1 card."</em></p>
+
+    <p><strong>Connect it:</strong> Responses tab → green Sheets icon → <em>Select existing
+      spreadsheet</em> → Loyalty. Rename the new tab to exactly <code>Signup responses</code>.</p>
+
+    <p class="muted">Leave a placeholder in the form description for a privacy policy link — we're
+      collecting names and emails for marketing, so it needs to be there before the form goes live.
+      We'll send you the URL.</p>
+  </section>
+
+  <section>
+    <h2><span class="step-num">Step 4</span>Activation form</h2>
+    <p>This one sits behind the QR on every card back. New form, <em>Activate Card</em>. Two
+      questions, again titled exactly:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Question title</th><th>Type</th><th>Required</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Card code</td><td>Short answer</td><td>Yes</td></tr>
+          <tr><td class="k">Confirm your email</td><td>Short answer</td><td>Yes</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>Confirmation message:</strong> <em>"Scan received. Show this screen to bar staff and
+      roll the d20."</em></p>
+
+    <p><strong>Connect it</strong> to the same spreadsheet, and rename the new tab to exactly
+      <code>Activation responses</code>.</p>
+
+    <p class="muted">The card code field will be visible to members rather than hidden — Google Forms
+      has no hidden fields. That's fine: the same code is printed on the card in their hand, and
+      typing a different one gets them nowhere.</p>
+  </section>
+
+  <section>
+    <h2><span class="step-num">Step 5</span>Get the prefill link</h2>
+    <p>On <em>Activate Card</em>: <code>⋮</code> menu → <strong>Get pre-filled link</strong>. Type
+      <code>DUMMYCODE</code> into the Card code box, leave the email blank, then
+      <strong>Get link</strong> → <strong>Copy link</strong>.</p>
+    <p>You'll get something ending <code>?usp=pp_url&amp;entry.123456789=DUMMYCODE</code>.</p>
+
+    <div class="warn">
+      <h3>This is the one thing everything else is waiting on</h3>
+      <p>The QR codes can't be generated until this link exists, and the cards can't be printed until
+        the QR codes exist. <strong>Send it over as soon as you have it</strong> — even if you haven't
+        finished the rest.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="step-num">Step 6</span>The script</h2>
+    <p>In the spreadsheet: <code>Extensions → Apps Script</code>. Delete whatever's in the editor and
+      paste this in, then save.</p>
+
+    <div class="codewrap">
+      <button class="copy" id="copy">Copy script</button>
+      <pre id="code"><!--CODE_GS--></pre>
+    </div>
+
+    <p>Then the trigger — clock icon in the left sidebar → <strong>+ Add Trigger</strong>:</p>
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr><td class="k">Function to run</td><td><code>onFormSubmit</code></td></tr>
+          <tr><td class="k">Event source</td><td>From spreadsheet</td></tr>
+          <tr><td class="k">Event type</td><td>On form submit</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="muted">
+      Pick the <strong>spreadsheet's</strong> trigger, not either form's own. The spreadsheet version
+      is the one that can see which tab a response landed in, which is how the script tells the two
+      forms apart.
+    </p>
+    <p class="muted">
+      Google will ask you to authorise, and will warn that the app isn't verified — normal for your
+      own scripts. Advanced → Go to project → Allow.
+    </p>
+  </section>
+
+  <section>
+    <h2><span class="step-num">Step 7</span>Test it, then try to break it</h2>
+    <ol>
+      <li>Submit the signup form with your own email. Check <strong>Members</strong> shows you at
+        level <strong>0</strong>.</li>
+      <li>Copy any level 1 code from the Cards tab. Submit the activation form with that code and
+        your email.</li>
+      <li>Check three things: you're now <strong>level 1</strong>, that card row says
+        <strong>activated</strong> and records your email, and the log shows <code>activated</code>.</li>
+    </ol>
+
+    <p>Then the important half. Each of these should be <strong>refused</strong>, with a reason in the
+      log, and should leave Members and Cards completely untouched:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Try this</th><th>Expected</th></tr></thead>
+        <tbody>
+          <tr><td>Submit the same code again</td><td>Card already activated</td></tr>
+          <tr><td>Submit a level 5 code</td><td>Cannot skip levels</td></tr>
+          <tr><td>Submit a made-up code</td><td>No such card code</td></tr>
+          <tr><td>Use an email that never signed up</td><td>They need to sign up first</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="muted">When you're done, delete your test member row, set those test cards back to
+      <code>unissued</code>, and clear the log.</p>
+  </section>
+
+  <div class="handback">
+    <h2>What to send back</h2>
+    <ul>
+      <li><strong>The prefilled activation link</strong> from step 5 — the blocker, send it first</li>
+      <li><strong>The signup form's share link</strong> — needed for the table standees</li>
+      <li><strong>Edit access to the spreadsheet</strong></li>
+      <li><strong>Confirmation the four refusal tests behaved</strong></li>
+    </ul>
+    <p class="muted">
+      One other thing worth settling: whose Google account owns this. It shouldn't be a personal one
+      belonging to someone who might move on.
+    </p>
+  </div>
+
+  <section>
+    <h2>If something misbehaves</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Symptom</th><th>Cause</th></tr></thead>
+        <tbody>
+          <tr><td>Nothing happens on submit</td><td>Trigger isn't on, or it's the form's trigger rather than the spreadsheet's.</td></tr>
+          <tr><td>Every scan says "No such card code"</td><td>The CSV wasn't imported, or was imported to the wrong tab.</td></tr>
+          <tr><td>Answers arrive blank</td><td>A form question title doesn't match. Google identifies answers by title, so they have to agree exactly.</td></tr>
+          <tr><td>Log says activated but level didn't change</td><td>The Level column is formatted as text, not Number.</td></tr>
+          <tr><td>Script error naming a column or tab</td><td>Something's spelled differently in the sheet than in the constants at the top of the script.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const btn = document.getElementById("copy");
+  const code = document.getElementById("code");
+  btn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(code.textContent);
+      btn.textContent = "Copied";
+      btn.classList.add("done");
+    } catch {
+      // Clipboard access can be blocked; selecting the text is the fallback.
+      const range = document.createRange();
+      range.selectNodeContents(code);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      btn.textContent = "Selected — press Ctrl/Cmd+C";
+      btn.classList.add("done");
+    }
+    setTimeout(() => { btn.textContent = "Copy script"; btn.classList.remove("done"); }, 2600);
+  });
+})();
+</script>
