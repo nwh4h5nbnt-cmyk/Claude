@@ -138,6 +138,25 @@ def write_printer_csv(rows, level, batch_slug):
     return path
 
 
+def write_designer_csv(rows, level, batch_slug):
+    """A CSV shaped for InDesign's Data Merge panel.
+
+    The @ prefix on a column header is how InDesign is told the values are
+    image paths rather than text. Paths are relative to the CSV, so unzipping
+    that level's QR archive alongside this file is all the setup needed.
+    """
+    d = os.path.join(OUTPUT_DIR, "for_designer")
+    os.makedirs(d, exist_ok=True)
+    path = os.path.join(d, f"level_{level:02d}_{batch_slug}_indesign.csv")
+    folder = f"level_{level:02d}_{batch_slug}"
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(["card_code", "@qr"])
+        for r in rows:
+            w.writerow([r["card_code"], os.path.join(folder, f"{r['card_code']}.png")])
+    return path
+
+
 def write_airtable_csv(rows, batch_slug):
     """Import straight into the Cards table. Every card starts unissued."""
     d = os.path.join(OUTPUT_DIR, "for_airtable")
@@ -265,9 +284,11 @@ def main():
         all_new.extend(rows)
 
         printer_csv = write_printer_csv(rows, level, batch_slug)
+        designer_csv = write_designer_csv(rows, level, batch_slug)
         qr_dir = write_qr_images(rows, level, batch_slug)
         proof = write_proof_pdf(rows, level, batch_slug, qr_dir)
         print(f"Level {level:>2}  {count:>4} cards   {printer_csv}")
+        print(f"{'':13}{'':>4}          {designer_csv}")
         print(f"{'':13}{'':>4}          {proof}")
 
     write_master(MASTER_CSV, existing_rows + all_new)

@@ -1,0 +1,397 @@
+<title>Guild Ranks — card artwork brief</title>
+
+<style>
+  :root {
+    --ground:   #FAF8F3;
+    --surface:  #FFFFFF;
+    --sunk:     #F2EEE4;
+    --line:     #E3DDCF;
+    --line-soft:#EFEAE0;
+    --text:     #1C1B2E;
+    --muted:    #6C6884;
+    --gold:     #9A6F14;
+    --gold-soft:#F3E7C8;
+    --flag:     #A8412F;
+    --flag-soft:#F7E4DF;
+    color-scheme: light;
+
+    --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:   #0C0F26;  --surface:  #141936;  --sunk:     #10142C;
+      --line:     #2A2F5C;  --line-soft:#1E2347;  --text:     #E8E5F5;
+      --muted:    #948FB4;  --gold:     #E9B84C;  --gold-soft:#2A2314;
+      --flag:     #E0796A;  --flag-soft:#2E1A18;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:   #0C0F26;  --surface:  #141936;  --sunk:     #10142C;
+    --line:     #2A2F5C;  --line-soft:#1E2347;  --text:     #E8E5F5;
+    --muted:    #948FB4;  --gold:     #E9B84C;  --gold-soft:#2A2314;
+    --flag:     #E0796A;  --flag-soft:#2E1A18;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0; padding: 44px 22px 80px;
+    background: var(--ground); color: var(--text);
+    font-family: var(--sans); font-size: 16px; line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .doc { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 38px; }
+
+  header { display: flex; flex-direction: column; gap: 10px; }
+  .kicker {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  h1 {
+    margin: 0; font-family: var(--serif); font-weight: 400;
+    font-size: clamp(30px, 5vw, 42px); line-height: 1.15; text-wrap: balance;
+  }
+  .standfirst { margin: 0; color: var(--muted); font-size: 17px; max-width: 62ch; text-wrap: pretty; }
+
+  section { display: flex; flex-direction: column; gap: 14px; }
+  h2 {
+    margin: 0; font-family: var(--serif); font-weight: 400; font-size: 24px;
+    border-bottom: 1px solid var(--line); padding-bottom: 9px; text-wrap: balance;
+  }
+  h3 { margin: 6px 0 0; font-size: 15px; font-weight: 700; letter-spacing: 0.01em; }
+  p { margin: 0; text-wrap: pretty; }
+  p.lede { font-size: 17px; }
+  .muted { color: var(--muted); }
+  ol, ul { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 7px; }
+  li { text-wrap: pretty; }
+  code {
+    font-family: var(--mono); font-size: 0.9em;
+    background: var(--sunk); padding: 1.5px 5px; border-radius: 2px;
+    border: 1px solid var(--line-soft); word-break: break-word;
+  }
+  strong { font-weight: 700; }
+
+  .callout {
+    background: var(--gold-soft); border: 1px solid var(--gold);
+    border-radius: 3px; padding: 20px 22px;
+    display: flex; flex-direction: column; gap: 9px;
+  }
+  .callout h2 {
+    border: 0; padding: 0; font-family: var(--sans); font-size: 13px; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold);
+  }
+
+  .warn {
+    background: var(--flag-soft); border-left: 3px solid var(--flag);
+    border-radius: 2px; padding: 15px 18px; display: flex; flex-direction: column; gap: 7px;
+  }
+  .warn h3 { margin: 0; color: var(--flag); font-size: 14px; letter-spacing: 0.02em; }
+
+  .routes { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .route {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 3px; padding: 18px 20px; display: flex; flex-direction: column; gap: 9px;
+  }
+  .route .tag {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--gold);
+  }
+  .route h3 { margin: 0; font-size: 17px; font-family: var(--serif); font-weight: 400; }
+  .route p { font-size: 14.5px; }
+  .route .deliver {
+    font-size: 13px; color: var(--muted); border-top: 1px solid var(--line-soft);
+    padding-top: 9px; margin-top: auto;
+  }
+
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 440px; }
+  th {
+    text-align: left; vertical-align: top; font-size: 10px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--muted); padding: 0 14px 8px 0; font-weight: 600;
+  }
+  td { padding: 9px 14px 9px 0; border-top: 1px solid var(--line); vertical-align: top; }
+  td:first-child { font-weight: 600; white-space: nowrap; }
+
+  figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  .diagram {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 3px; padding: 22px; overflow-x: auto;
+  }
+  .diagram svg { display: block; width: 100%; height: auto; min-width: 380px; }
+  figcaption { font-size: 13.5px; color: var(--muted); text-wrap: pretty; }
+
+  .charset {
+    font-family: var(--mono); font-size: 15px; letter-spacing: 0.12em;
+    background: var(--sunk); border: 1px solid var(--line);
+    border-radius: 3px; padding: 13px 16px; word-break: break-all;
+  }
+  .charset .out { color: var(--flag); text-decoration: line-through; opacity: 0.75; }
+</style>
+
+<div class="doc">
+
+  <header>
+    <span class="kicker">Guild Ranks · artwork brief</span>
+    <h1>How each card gets its own code</h1>
+    <p class="standfirst">
+      You are not designing 675 cards. You are designing ten, each with one small placeholder that
+      gets filled from a spreadsheet at output time.
+    </p>
+  </header>
+
+  <div class="callout">
+    <h2>It's a data merge</h2>
+    <p>
+      The same mechanism as personalised invitations or numbered event tickets. One master file per
+      rank, one CSV, one merged output. Nobody places a code by hand, and no file is duplicated 250
+      times.
+    </p>
+  </div>
+
+  <section>
+    <h2>What you're delivering</h2>
+    <p>Per rank, two print-ready files:</p>
+    <ul>
+      <li><strong>Front</strong> — the rank artwork. No variable content at all.</li>
+      <li><strong>Back</strong> — the stamp grid, plus a reserved zone where the code goes.</li>
+    </ul>
+    <p class="muted">
+      Twenty files total. The code placeholder is the only thing that differs card to card. Only
+      ranks 1–3 are needed for the first print run.
+    </p>
+  </section>
+
+  <section>
+    <h2>The code zone</h2>
+
+    <figure>
+      <div class="diagram">
+        <svg viewBox="0 0 460 336" role="img"
+             aria-label="Diagram of a card back showing the stamp grid occupying the upper area and the code zone in the lower right, with a 20mm QR, a 2mm quiet zone, and the readable code beneath it.">
+          <defs>
+            <pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="0" x2="0" y2="6" stroke="currentColor" stroke-width="1" opacity="0.18"/>
+            </pattern>
+          </defs>
+
+          <!-- card body -->
+          <rect x="14" y="14" width="432" height="308" rx="7"
+                fill="var(--sunk)" stroke="var(--line)" stroke-width="1.5"/>
+
+          <!-- trim label -->
+          <text x="24" y="34" font-family="var(--mono)" font-size="9"
+                letter-spacing="1.4" fill="var(--muted)">CARD BACK</text>
+
+          <!-- stamp grid -->
+          <g stroke="var(--muted)" fill="none" opacity="0.55">
+            <circle cx="60"  cy="96" r="17" stroke-dasharray="3 3"/>
+            <circle cx="106" cy="96" r="17" stroke-dasharray="3 3"/>
+            <circle cx="152" cy="96" r="17" stroke-dasharray="3 3"/>
+            <circle cx="198" cy="96" r="17" stroke-dasharray="3 3"/>
+            <circle cx="244" cy="96" r="17" stroke-dasharray="3 3"/>
+            <circle cx="290" cy="96" r="17" stroke-dasharray="3 3"/>
+          </g>
+          <text x="44" y="141" font-family="var(--sans)" font-size="10.5" fill="var(--muted)">
+            stamp grid — keep the code clear of this
+          </text>
+
+          <!-- divider -->
+          <line x1="44" y1="163" x2="416" y2="163" stroke="var(--line)" stroke-width="1"/>
+
+          <!-- quiet zone: hugs the QR only, and nothing else may enter it -->
+          <rect x="286" y="194" width="98" height="98" rx="3"
+                fill="url(#hatch)" stroke="var(--flag)" stroke-width="1"
+                stroke-dasharray="4 3" color="var(--flag)"/>
+
+          <!-- light panel + QR -->
+          <rect x="298" y="206" width="74" height="74" rx="2" fill="#FFFFFF" stroke="var(--line)"/>
+          <g fill="#111111">
+            <rect x="306" y="214" width="16" height="16"/><rect x="348" y="214" width="16" height="16"/>
+            <rect x="306" y="256" width="16" height="16"/>
+            <rect x="328" y="216" width="5" height="5"/><rect x="336" y="224" width="5" height="5"/>
+            <rect x="328" y="232" width="5" height="5"/><rect x="344" y="240" width="5" height="5"/>
+            <rect x="312" y="240" width="5" height="5"/><rect x="328" y="248" width="5" height="5"/>
+            <rect x="352" y="256" width="5" height="5"/><rect x="336" y="264" width="5" height="5"/>
+            <rect x="344" y="272" width="5" height="5"/><rect x="328" y="264" width="5" height="5"/>
+          </g>
+
+          <!-- readable code: sits below the quiet zone, never inside it -->
+          <text x="335" y="308" text-anchor="middle" font-family="var(--mono)"
+                font-size="11" letter-spacing="1.6" fill="var(--text)">B9V4LR</text>
+
+          <!-- annotations -->
+          <g font-family="var(--sans)" font-size="10" fill="var(--muted)">
+            <line x1="298" y1="185" x2="372" y2="185" stroke="var(--gold)" stroke-width="1"/>
+            <line x1="298" y1="182" x2="298" y2="188" stroke="var(--gold)" stroke-width="1"/>
+            <line x1="372" y1="182" x2="372" y2="188" stroke="var(--gold)" stroke-width="1"/>
+            <text x="335" y="177" text-anchor="middle" fill="var(--gold)"
+                  font-family="var(--mono)" font-size="9.5" letter-spacing="0.8">20mm MIN</text>
+
+            <text x="272" y="234" text-anchor="end" fill="var(--flag)" font-size="10">quiet zone</text>
+            <text x="272" y="247" text-anchor="end" fill="var(--flag)" font-size="10">2mm clear</text>
+            <line x1="276" y1="230" x2="290" y2="222" stroke="var(--flag)" stroke-width="1"/>
+
+            <text x="272" y="305" text-anchor="end" font-size="10">readable code</text>
+            <line x1="276" y1="301" x2="302" y2="305" stroke="var(--muted)" stroke-width="1"/>
+          </g>
+        </svg>
+      </div>
+      <figcaption>
+        Indicative layout, not to scale. What matters is the relationships: code zone below the stamp
+        grid, QR on a light panel, quiet zone unbroken by artwork.
+      </figcaption>
+    </figure>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Requirement</th><th>Spec</th></tr></thead>
+        <tbody>
+          <tr><td>QR size</td><td>20 × 20 mm minimum at finished size. Bigger is fine.</td></tr>
+          <tr><td>Quiet zone</td><td>At least 2 mm clear on all four sides. No artwork, rules or texture intruding.</td></tr>
+          <tr><td>Contrast</td><td>Dark modules on a light ground. Near-black on near-white is safest.</td></tr>
+          <tr><td>Background</td><td>Flat colour only. No gradient, photograph or paper texture behind the code.</td></tr>
+          <tr><td>Readable code</td><td>Directly beneath the QR. 7 pt minimum, generous letter-spacing.</td></tr>
+          <tr><td>Position</td><td>On the back, outside the stamp grid, with a visible divider or frame.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="warn">
+      <h3>Do not invert the QR</h3>
+      <p>
+        Light modules on a dark ground fail on a meaningful share of phone scanners, and you only
+        discover it after printing.
+      </p>
+      <p class="muted">
+        The rank artwork will want to be dark and moody. The code doesn't get to be. Give it a light
+        panel and make that panel a deliberate part of the design — a parchment strip, an inset
+        plate, a torn label. Something that reads as chosen rather than tolerated.
+      </p>
+    </div>
+
+    <h3>One thing that buys you freedom</h3>
+    <p>
+      The QR is scanned <strong>once</strong>, within about a minute of the card being handed over,
+      and is dead weight for the rest of the card's life. It does not need to survive weeks of
+      stamping, beer and wallet abrasion.
+    </p>
+    <p class="muted">
+      So put it in the least precious real estate on the back. It doesn't deserve prime position, and
+      treating it as disposable furniture rather than a hero element will make the card look better.
+      The readable code underneath is the part worth protecting — it stays useful for support lookups
+      long after the QR is spent.
+    </p>
+  </section>
+
+  <section>
+    <h2>Two ways to get the codes on</h2>
+    <p class="muted">Agree which with the printer before building files — it changes what you hand over.</p>
+
+    <div class="routes">
+      <div class="route">
+        <span class="tag">Route A</span>
+        <h3>The printer merges</h3>
+        <p>
+          You deliver flat artwork with the code zone left empty but clearly marked. Their RIP drops
+          each code in as it prints. Ask for <strong>variable data printing</strong> — every trade
+          digital printer does it. Expect a setup fee.
+        </p>
+        <p class="deliver">Hand over: artwork PDFs + <code>for_printer/level_NN_*.csv</code></p>
+      </div>
+
+      <div class="route">
+        <span class="tag">Route B · usually better</span>
+        <h3>You merge</h3>
+        <p>
+          You run the merge in InDesign and export one flat multi-page PDF. The printer receives an
+          ordinary job with no VDP surcharge, and you keep full control over placement.
+        </p>
+        <p class="deliver">Hand over: one merged PDF per rank</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Running the merge in InDesign</h2>
+    <p class="muted">
+      Everything is in <code>output/for_designer/</code>. Each rank has a CSV with a folder of QR
+      images beside it — paths are relative, so keep those two together.
+    </p>
+    <ol>
+      <li>Open the card <strong>back</strong> file for that rank.</li>
+      <li>Draw a <strong>graphic frame</strong>, exactly 20 × 20 mm, where the QR goes.</li>
+      <li>Draw a <strong>text frame</strong> directly beneath it for the readable code.</li>
+      <li><code>Window → Utilities → Data Merge</code>.</li>
+      <li>Panel menu → <strong>Select Data Source</strong> → <code>level_01_..._indesign.csv</code>.</li>
+      <li>
+        Drag the <code>@qr</code> field onto the graphic frame. The <code>@</code> prefix is how
+        InDesign knows those values are image paths rather than text — it's already in the file,
+        don't rename the column.
+      </li>
+      <li>Drag <code>card_code</code> into the text frame.</li>
+      <li>Panel menu → <strong>Create Merged Document</strong>.</li>
+      <li>Export as PDF/X-1a or PDF/X-4, whichever the printer asks for.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Character set</h2>
+    <p>Codes are six characters, always starting with a letter:</p>
+    <p class="charset">
+      23456789ABCDEFGHJKMNPQRSTVWXYZ
+      &nbsp;&nbsp;<span class="out">I L O U 0 1</span>
+    </p>
+    <p class="muted">
+      Those six are excluded so nothing gets misread when someone reads a code down the phone.
+      <strong>Pick a face where the survivors stay distinct</strong> — particularly
+      <code>5</code>/<code>S</code>, <code>8</code>/<code>B</code> and <code>2</code>/<code>Z</code>.
+      Monospaced or clearly-drawn geometric is safest; ornate display faces are not.
+    </p>
+  </section>
+
+  <section>
+    <h2>Things that go wrong</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Symptom</th><th>Cause</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Grey boxes instead of QRs</td>
+            <td>The CSV and its image folder have been separated. They must stay side by side.</td>
+          </tr>
+          <tr>
+            <td>Blurry or cropped QRs</td>
+            <td>Frame fitting is scaling the image. The PNGs are ~420 dpi at 20 mm, so anything soft means it's being resampled.</td>
+          </tr>
+          <tr>
+            <td>Broken image paths</td>
+            <td>The CSV was opened and re-saved in Excel, which rewrites the path column. Use a plain text editor, or ask for a fresh file.</td>
+          </tr>
+          <tr>
+            <td>Wrong codes on the wrong rank</td>
+            <td>The expensive one. Run each rank as a completely separate job, with only that rank's CSV and artwork open. Then there is nothing to misalign.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Before the full run</h2>
+    <p class="lede">
+      Print a proof and scan three cards from it with a cheap Android phone, in dim light. Bar
+      lighting, not studio lighting.
+    </p>
+    <p class="muted">
+      Check each opens a form with the code already filled in, and that the code on screen matches
+      the one printed on that card. Two minutes, and it catches every failure listed above.
+    </p>
+  </section>
+
+</div>
