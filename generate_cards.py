@@ -249,6 +249,52 @@ def write_proof_pdf(rows, level, batch_slug, qr_dir):
 
 # ---------------------------------------------------------------------------
 
+def retarget(rows, url_template):
+    """Point every existing code at a new address and redraw its QR.
+
+    Used once the real form exists. Codes are deliberately left alone: by this
+    point they are already sitting in the Cards tab of the spreadsheet, and
+    generating fresh ones would silently invalidate every row there. Only the
+    URL each code is wrapped in changes, so nothing downstream breaks.
+    """
+    if not rows:
+        print("Nothing to retarget — no codes have been generated yet.", file=sys.stderr)
+        return 1
+
+    for r in rows:
+        r["qr_url"] = url_template.format(code=r["card_code"])
+
+    # Rows carry a batch label like "2026-08-launch L3"; recover the batch name
+    # so the rewritten files land on top of the originals rather than beside them.
+    groups = {}
+    for r in rows:
+        level = int(r["level"])
+        label = r["batch"]
+        suffix = f" L{level}"
+        if label.endswith(suffix):
+            label = label[: -len(suffix)]
+        groups.setdefault((level, label), []).append(r)
+
+    for (level, label) in sorted(groups):
+        group = groups[(level, label)]
+        slug = label.replace(" ", "-").replace("/", "-")
+        write_printer_csv(group, level, slug)
+        write_designer_csv(group, level, slug)
+        qr_dir = write_qr_images(group, level, slug)
+        write_proof_pdf(group, level, slug, qr_dir)
+        print(f"Level {level:>2}  {len(group):>4} cards redrawn   ({label})")
+
+    write_master(MASTER_CSV, rows)
+
+    print(f"\nRe-aimed {len(rows)} existing codes. No new codes were created.")
+    print(f"QR codes now point at {url_template.replace('{code}', 'XXXXXX')}")
+    print("\nThe spreadsheet needs no changes — the codes in the Cards tab are")
+    print("unchanged and still correct. Only the printed QR images differ.")
+    print("\nScan one image from output/qr_images/ before sending anything to")
+    print("a printer. It should open the form with the code already filled in.")
+    return 0
+
+
 def main():
     p = argparse.ArgumentParser(description="Generate loyalty card codes and QR files.")
     p.add_argument("--base-url", default=None,
@@ -263,12 +309,21 @@ def main():
                    help="How many cards. Only used with --level.")
     p.add_argument("--batch", default=date.today().strftime("%Y-%m"),
                    help="Batch label, e.g. 2026-08 or 2026-11-reprint.")
+    p.add_argument("--retarget", action="store_true",
+                   help="Re-aim every EXISTING code at a new address and redraw "
+                        "its QR. Creates no new codes — use this once the real "
+                        "form exists, so the spreadsheet stays valid.")
     args = p.parse_args()
 
     if args.level and not args.count:
         p.error("--level needs --count as well")
     if args.base_url and args.url_template:
         p.error("use --base-url or --url-template, not both")
+    if args.retarget:
+        if not (args.base_url or args.url_template):
+            p.error("--retarget needs the new address: --base-url or --url-template")
+        if args.level or args.count:
+            p.error("--retarget covers every existing code; drop --level and --count")
 
     batch_slug = args.batch.replace(" ", "-").replace("/", "-")
 
@@ -293,6 +348,9 @@ def main():
 
     print(f"QR codes will point at {url_template.replace('{code}', 'XXXXXX')}")
     print(f"  (taken from {source})\n")
+
+    if args.retarget:
+        return retarget(existing_rows, url_template)
 
     quantities = ({args.level: args.count} if args.level else DEFAULT_QUANTITIES)
 

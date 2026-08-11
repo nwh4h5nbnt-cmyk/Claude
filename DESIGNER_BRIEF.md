@@ -54,7 +54,7 @@ folder of QR images sitting beside it — the paths in the CSV are relative, so
 as long as those two stay together it just works.
 
 1. Open your card **back** file.
-2. Draw a **graphic frame**, exactly 20 × 20 mm, where the QR goes.
+2. Draw a **graphic frame**, exactly 25 × 25 mm, where the QR goes.
 3. Draw a **text frame** directly beneath it for the readable code.
 4. `Window → Utilities → Data Merge`.
 5. Panel menu → **Select Data Source** → pick
@@ -76,12 +76,29 @@ These are the ones that cause reprints if they're wrong.
 
 | | Spec |
 |---|---|
-| **QR size** | 20 × 20 mm minimum at finished size. Bigger is fine. |
+| **QR size** | **25 × 25 mm minimum** at finished size. Bigger is fine. See the note below — this is up from 20 mm. |
 | **Quiet zone** | At least 2 mm clear on all four sides. No artwork, no rules, no texture intruding. |
 | **Contrast** | Dark modules on a light ground. Near-black on near-white is safest. |
 | **Background** | Flat colour only. No gradient, no photograph, no paper texture behind the code. |
 | **Readable code** | Directly beneath the QR. 7 pt minimum, generous letter-spacing so characters separate cleanly. |
 | **Position** | On the back, outside the stamp grid, with a visible divider or frame so it reads as intentional. |
+
+### Why 25 mm and not 20 mm
+
+The QR points at a Google Forms address, which is long — 134 characters. Long
+content means more modules: **57 across, against 29 for a short link.**
+
+At 20 mm that works out at 0.35 mm per module, which is under the 0.4 mm most
+people treat as the comfortable floor for phone cameras in poor light. It will
+scan on a good phone at a well-lit table and get flaky on a cheap one in a dark
+bar — the exact conditions this has to work in.
+
+At 25 mm it's 0.44 mm per module and comfortably back in range.
+
+**If 25 mm doesn't suit the layout**, the fix is a short domain redirecting to
+the form — something like `lvlup.thebar.com/go?c=XXXXXX`. That drops the code
+back to 29 modules and 20 mm becomes generous again. Costs about £12 a year and
+is worth raising before you redraw anything.
 
 ### On inverting the QR
 
@@ -128,7 +145,7 @@ separated. They must stay side by side.
 
 **Blurry or cropped QRs** — the graphic frame's fitting is scaling the image.
 Set frame fitting so content fits the frame exactly. The supplied PNGs are
-around 420 dpi at 20 mm, so there is plenty of resolution; anything soft means
+around 600 dpi at 25 mm, so there is plenty of resolution; anything soft means
 it's being resampled.
 
 **Broken paths after editing the CSV** — opening it in Excel and re-saving can

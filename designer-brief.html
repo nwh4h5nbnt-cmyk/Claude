@@ -173,7 +173,7 @@
     <figure>
       <div class="diagram">
         <svg viewBox="0 0 460 336" role="img"
-             aria-label="Diagram of a card back showing the stamp grid occupying the upper area and the code zone in the lower right, with a 20mm QR, a 2mm quiet zone, and the readable code beneath it.">
+             aria-label="Diagram of a card back showing the stamp grid occupying the upper area and the code zone in the lower right, with a 25mm QR, a 2mm quiet zone, and the readable code beneath it.">
           <defs>
             <pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
               <line x1="0" y1="0" x2="0" y2="6" stroke="currentColor" stroke-width="1" opacity="0.18"/>
@@ -231,7 +231,7 @@
             <line x1="298" y1="182" x2="298" y2="188" stroke="var(--gold)" stroke-width="1"/>
             <line x1="372" y1="182" x2="372" y2="188" stroke="var(--gold)" stroke-width="1"/>
             <text x="335" y="177" text-anchor="middle" fill="var(--gold)"
-                  font-family="var(--mono)" font-size="9.5" letter-spacing="0.8">20mm MIN</text>
+                  font-family="var(--mono)" font-size="9.5" letter-spacing="0.8">25mm MIN</text>
 
             <text x="272" y="234" text-anchor="end" fill="var(--flag)" font-size="10">quiet zone</text>
             <text x="272" y="247" text-anchor="end" fill="var(--flag)" font-size="10">2mm clear</text>
@@ -252,7 +252,7 @@
       <table>
         <thead><tr><th>Requirement</th><th>Spec</th></tr></thead>
         <tbody>
-          <tr><td>QR size</td><td>20 × 20 mm minimum at finished size. Bigger is fine.</td></tr>
+          <tr><td>QR size</td><td><strong>25 × 25 mm minimum</strong> at finished size — up from 20 mm, see below. Bigger is fine.</td></tr>
           <tr><td>Quiet zone</td><td>At least 2 mm clear on all four sides. No artwork, rules or texture intruding.</td></tr>
           <tr><td>Contrast</td><td>Dark modules on a light ground. Near-black on near-white is safest.</td></tr>
           <tr><td>Background</td><td>Flat colour only. No gradient, photograph or paper texture behind the code.</td></tr>
@@ -260,6 +260,26 @@
           <tr><td>Position</td><td>On the back, outside the stamp grid, with a visible divider or frame.</td></tr>
         </tbody>
       </table>
+    </div>
+
+    <div class="warn">
+      <h3>Why 25 mm, not 20 mm</h3>
+      <p>
+        The QR points at a Google Forms address, which is long — 134 characters. More content means
+        more modules: <strong>57 across, against 29 for a short link.</strong>
+      </p>
+      <p class="muted">
+        At 20 mm that is 0.35 mm per module, under the 0.4 mm most people treat as the floor for
+        phone cameras in poor light. It will scan on a good phone at a well-lit table and get flaky
+        on a cheap one in a dark bar — the exact conditions this has to survive. At 25 mm it is
+        0.44 mm and comfortably back in range.
+      </p>
+      <p class="muted">
+        <strong>If 25 mm breaks the layout</strong>, the alternative is a short domain redirecting to
+        the form — <code>lvlup.thebar.com/go?c=XXXXXX</code> or similar. That drops it back to 29
+        modules and makes 20 mm generous again. About £12 a year, and worth raising before anything
+        gets redrawn.
+      </p>
     </div>
 
     <div class="warn">
@@ -325,7 +345,7 @@
     </p>
     <ol>
       <li>Open the card <strong>back</strong> file for that rank.</li>
-      <li>Draw a <strong>graphic frame</strong>, exactly 20 × 20 mm, where the QR goes.</li>
+      <li>Draw a <strong>graphic frame</strong>, exactly 25 × 25 mm, where the QR goes.</li>
       <li>Draw a <strong>text frame</strong> directly beneath it for the readable code.</li>
       <li><code>Window → Utilities → Data Merge</code>.</li>
       <li>Panel menu → <strong>Select Data Source</strong> → <code>level_01_..._indesign.csv</code>.</li>
@@ -367,7 +387,7 @@
           </tr>
           <tr>
             <td>Blurry or cropped QRs</td>
-            <td>Frame fitting is scaling the image. The PNGs are ~420 dpi at 20 mm, so anything soft means it's being resampled.</td>
+            <td>Frame fitting is scaling the image. The PNGs are ~600 dpi at 25 mm, so anything soft means it's being resampled.</td>
           </tr>
           <tr>
             <td>Broken image paths</td>
