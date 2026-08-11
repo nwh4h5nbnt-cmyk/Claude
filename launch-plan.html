@@ -1,0 +1,459 @@
+<title>Guild Ranks — launch plan</title>
+
+<style>
+  :root {
+    --ground:   #FAF8F3;
+    --surface:  #FFFFFF;
+    --sunk:     #F2EEE4;
+    --line:     #E3DDCF;
+    --line-soft:#EFEAE0;
+    --text:     #1C1B2E;
+    --muted:    #6C6884;
+    --gold:     #9A6F14;
+    --gold-soft:#F3E7C8;
+    --flag:     #A8412F;
+    --done:     #4A7A52;
+    color-scheme: light;
+
+    --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:   #0C0F26;
+      --surface:  #141936;
+      --sunk:     #10142C;
+      --line:     #2A2F5C;
+      --line-soft:#1E2347;
+      --text:     #E8E5F5;
+      --muted:    #948FB4;
+      --gold:     #E9B84C;
+      --gold-soft:#2A2314;
+      --flag:     #E0796A;
+      --done:     #6FBF85;
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:   #0C0F26;
+    --surface:  #141936;
+    --sunk:     #10142C;
+    --line:     #2A2F5C;
+    --line-soft:#1E2347;
+    --text:     #E8E5F5;
+    --muted:    #948FB4;
+    --gold:     #E9B84C;
+    --gold-soft:#2A2314;
+    --flag:     #E0796A;
+    --done:     #6FBF85;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 44px 22px 80px;
+    background: var(--ground);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .doc { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+
+  /* --- header --- */
+
+  header { display: flex; flex-direction: column; gap: 10px; }
+  .kicker {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  h1 {
+    margin: 0; font-family: var(--serif); font-weight: 400;
+    font-size: clamp(30px, 5vw, 42px); line-height: 1.15; letter-spacing: 0.01em;
+    text-wrap: balance;
+  }
+  .standfirst { margin: 0; color: var(--muted); font-size: 17px; max-width: 62ch; text-wrap: pretty; }
+
+  /* --- the warning --- */
+
+  .bottleneck {
+    background: var(--gold-soft); border: 1px solid var(--gold);
+    border-radius: 3px; padding: 20px 22px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .bottleneck h2 {
+    margin: 0; font-family: var(--sans); font-size: 13px; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold);
+  }
+  .bottleneck p { margin: 0; font-size: 15px; text-wrap: pretty; }
+  .bottleneck p + p { color: var(--muted); }
+
+  /* --- phases --- */
+
+  .phase { display: flex; flex-direction: column; gap: 14px; }
+
+  .phase-head {
+    display: flex; align-items: baseline; gap: 14px;
+    border-bottom: 1px solid var(--line); padding-bottom: 9px;
+  }
+  .phase-when {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--muted); white-space: nowrap;
+  }
+  .phase-head h2 {
+    margin: 0; font-family: var(--serif); font-weight: 400; font-size: 23px;
+    flex: 1; text-wrap: balance;
+  }
+
+  .phase-note { margin: 0; font-size: 14px; color: var(--muted); text-wrap: pretty; }
+
+  /* --- tasks --- */
+
+  ul.tasks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+
+  li.task { display: flex; gap: 12px; align-items: flex-start; padding: 9px 10px; border-radius: 3px; }
+  li.task:hover { background: var(--sunk); }
+
+  li.task input {
+    margin: 5px 0 0; flex: none; width: 15px; height: 15px;
+    accent-color: var(--gold); cursor: pointer;
+  }
+  li.task input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  .task-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .task-title { font-size: 15px; cursor: pointer; text-wrap: pretty; }
+  .task-detail { font-size: 13.5px; color: var(--muted); text-wrap: pretty; }
+  .task-detail code {
+    font-family: var(--mono); font-size: 0.92em;
+    background: var(--sunk); padding: 1px 5px; border-radius: 2px;
+    border: 1px solid var(--line-soft);
+  }
+
+  li.task.is-done .task-title { text-decoration: line-through; color: var(--muted); }
+
+  .crit {
+    display: inline-block; font-family: var(--mono); font-size: 9.5px;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--flag);
+    border: 1px solid currentColor; border-radius: 2px; padding: 1px 5px;
+    margin-left: 8px; vertical-align: 2px; white-space: nowrap;
+  }
+
+  /* --- decisions --- */
+
+  .decisions { background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 22px 24px; }
+  .decisions h2 {
+    margin: 0 0 6px; font-family: var(--serif); font-weight: 400; font-size: 21px;
+  }
+  .decisions > p { margin: 0 0 16px; font-size: 14px; color: var(--muted); text-wrap: pretty; }
+  dl { margin: 0; display: flex; flex-direction: column; gap: 15px; }
+  dt { font-weight: 600; font-size: 15px; }
+  dd { margin: 3px 0 0; font-size: 14px; color: var(--muted); text-wrap: pretty; }
+
+  /* --- critical path strip --- */
+
+  .critpath { display: flex; flex-direction: column; gap: 12px; }
+  .critpath h2 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 21px; }
+  .chain { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+  .chain span {
+    font-size: 13px; padding: 5px 11px; border-radius: 2px;
+    background: var(--surface); border: 1px solid var(--line);
+  }
+  .chain span.wait { color: var(--muted); font-style: italic; }
+  .chain i { color: var(--muted); font-style: normal; }
+
+  footer {
+    border-top: 1px solid var(--line); padding-top: 18px;
+    font-size: 13.5px; color: var(--muted); display: flex; flex-direction: column; gap: 10px;
+  }
+  .progress { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; color: var(--gold); }
+  button.reset {
+    align-self: flex-start; font: inherit; font-size: 13px; cursor: pointer;
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 3px; padding: 6px 12px;
+  }
+  button.reset:hover { border-color: var(--gold); color: var(--text); }
+  button.reset:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+</style>
+
+<div class="doc">
+
+  <header>
+    <span class="kicker">Guild Ranks · loyalty scheme</span>
+    <h1>What happens between finished artwork and opening night</h1>
+    <p class="standfirst">
+      Roughly five weeks, most of it waiting on a printer. The work splits into four tracks that
+      mostly run in parallel — but one of them blocks everything else, and it isn't the one that
+      looks urgent.
+    </p>
+  </header>
+
+  <div class="bottleneck">
+    <h2>Do this first</h2>
+    <p>
+      <strong>Build the two Google Forms before anything else</strong>, even though the digital side
+      feels like it can wait until the cards exist.
+    </p>
+    <p>
+      Your QR codes have to point at a real form address, and they can't be generated until that
+      address exists. The card backs need those QRs, and the standee needs the signup form's link.
+      So both print jobs are stuck behind an afternoon of form-building. Everything else can slip;
+      this can't.
+    </p>
+  </div>
+
+  <section class="phase">
+    <div class="phase-head">
+      <span class="phase-when">Week 1</span>
+      <h2>Stand up the digital side</h2>
+    </div>
+    <p class="phase-note">An hour of setup, then an hour of trying to break it. Follow <code>google-sheets/SETUP.md</code>.</p>
+    <ul class="tasks" data-phase="w1">
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Create the spreadsheet and its three tabs</span>
+        <span class="task-detail">Headers exactly as listed — the script finds columns by name.</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Import the cards CSV</span>
+        <span class="task-detail">675 rows land in <code>Cards</code>, all showing <code>unissued</code>.</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Build both Google Forms and connect them to the sheet<span class="crit">blocks printing</span></span>
+        <span class="task-detail">Signup form and activation form. Rename the response tabs to match the guide.</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Copy the activation form's prefilled link<span class="crit">blocks printing</span></span>
+        <span class="task-detail">The ⋮ menu → Get pre-filled link. This is the address your QRs encode.</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Paste in the script and switch the trigger on</span>
+        <span class="task-detail">New triggers are off by default. Nothing works until you flip it.</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Write a privacy note and link it from the signup form</span>
+        <span class="task-detail">You're collecting names and emails for marketing. Needs to exist before the form goes live, not after.</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Test the whole journey on yourself, then try to break it</span>
+        <span class="task-detail">Scan a code twice, try a rank you haven't earned, use an unregistered email. All three should refuse with a reason in the log.</span>
+      </span></li>
+    </ul>
+  </section>
+
+  <section class="phase">
+    <div class="phase-head">
+      <span class="phase-when">Week 2</span>
+      <h2>Marry the codes to the artwork</h2>
+    </div>
+    <p class="phase-note">The step where a mistake gets expensive, so it ends with a physical check.</p>
+    <ul class="tasks" data-phase="w2">
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Regenerate the QR codes against the real form address<span class="crit">blocks printing</span></span>
+        <span class="task-detail">The committed QRs point at a placeholder and will not work. Codes stay the same — only the images change, so nothing is wasted.</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Scan a regenerated QR with your own phone</span>
+        <span class="task-detail">It should open the form with the code already filled in. Thirty seconds, catches everything.</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Send artwork and CSVs to the printer — one job per level<span class="crit">blocks printing</span></span>
+        <span class="task-detail">Ranks 1–3 only for now: 250, 125 and 75 cards. Separate jobs make it impossible for the wrong codes to land on the wrong design.</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Check the QR sits on a light panel, clear of the stamp grid</span>
+        <span class="task-detail">Dark-on-light, 20mm minimum, quiet zone unbroken. Inverted QRs fail on a lot of phones.</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Design the table standee around the signup form's link</span>
+        <span class="task-detail">Runs in parallel with the card print. Cheaper and faster, so it can start later and still land first.</span>
+      </span></li>
+    </ul>
+  </section>
+
+  <section class="phase">
+    <div class="phase-head">
+      <span class="phase-when">Week 3</span>
+      <h2>Proof, then commit</h2>
+    </div>
+    <p class="phase-note">Ask for a physical proof before the full run. Most printers will do one for very little.</p>
+    <ul class="tasks" data-phase="w3">
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Scan three cards from the proof, on a cheap phone, in dim light</span>
+        <span class="task-detail">Bar lighting, not desk lighting. This is the real test.</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Check the code printed on the card matches the level printed on it</span>
+        <span class="task-detail">A misaligned batch is the one failure that reaches customers. Recoverable by editing the sheet, but far better caught here.</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Approve the full run</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Order the stamps and the d20</span>
+        <span class="task-detail">Two or three stamp designs so you can rotate them. Keep them behind the bar.</span>
+      </span></li>
+    </ul>
+  </section>
+
+  <section class="phase">
+    <div class="phase-head">
+      <span class="phase-when">Weeks 3–4</span>
+      <h2>While the printer has it</h2>
+    </div>
+    <p class="phase-note">Dead time on the critical path. Spend it on the things that decide whether staff can actually run this.</p>
+    <ul class="tasks" data-phase="w4">
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Write the one-page staff crib sheet</span>
+        <span class="task-detail">Card is full → hand over the next one → they scan it → they show you the screen → they roll. Plus: never hand out a card without seeing a full one first.</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Decide the d20 prize table and tell staff what they can give away</span>
+        <span class="task-detail">A roll nobody can honour is worse than no roll.</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Decide exactly what earns a stamp</span>
+        <span class="task-detail">Per visit, per drink, or per amount spent. This single choice sets how fast the whole ladder runs.</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Print the standees</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Agree who owns the Google account</span>
+        <span class="task-detail">Not a personal account belonging to someone who might leave.</span>
+      </span></li>
+    </ul>
+  </section>
+
+  <section class="phase">
+    <div class="phase-head">
+      <span class="phase-when">Week 5</span>
+      <h2>Open</h2>
+    </div>
+    <ul class="tasks" data-phase="w5">
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Walk the whole journey with a real card and a real phone</span>
+        <span class="task-detail">Sign up, collect, scan, roll. Do it before a customer does.</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Brief the staff, cards behind the bar, standees on tables</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Put the red reorder marker three-quarters down the LVL 1 stack</span>
+        <span class="task-detail">The sheet can't see your physical stock. This is what tells you to reprint.</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Open the scheme</span>
+      </span></li>
+      <li class="task"><input type="checkbox"><span class="task-body">
+        <span class="task-title">Diarise a review one month in</span>
+        <span class="task-detail">Re-run the estimator with your real signup rate and real fill speed, then order ranks 4 and 5 with actual data.</span>
+      </span></li>
+    </ul>
+  </section>
+
+  <section class="critpath">
+    <h2>The chain that actually sets your date</h2>
+    <div class="chain">
+      <span>Build forms</span><i>→</i>
+      <span>Get prefill link</span><i>→</i>
+      <span>Regenerate QRs</span><i>→</i>
+      <span>Merge into artwork</span><i>→</i>
+      <span>Proof</span><i>→</i>
+      <span class="wait">printer, 5–10 working days</span><i>→</i>
+      <span>Open</span>
+    </div>
+    <p class="phase-note">
+      Everything else — standees, stamps, staff briefing, prize table — runs alongside and can absorb
+      delay without moving your launch. Only this chain moves the date, and the first two links are
+      an afternoon's work that most people leave until last.
+    </p>
+  </section>
+
+  <section class="decisions">
+    <h2>Three things still open</h2>
+    <p>Not blockers today, but each one changes something downstream.</p>
+    <dl>
+      <dt>How many stamps fill a card — and is it already locked into the artwork?</dt>
+      <dd>
+        If the stamp boxes are printed on the finished design, this is now fixed, and it's the single
+        biggest driver of how fast members climb. Worth confirming the number matches what you
+        intended before printing 450 of them.
+      </dd>
+
+      <dt>What a stamp is earned for</dt>
+      <dd>
+        Per visit is simplest and slowest. Per drink runs the ladder two or three times faster and
+        would mean printing considerably more of ranks 4 and up than currently planned.
+      </dd>
+
+      <dt>Whether level 1 needs scanning at all</dt>
+      <dd>
+        Keeping it means one uniform rule and clean data. Dropping it saves variable-data printing on
+        your largest batch. Either is fine — but it must be settled before the level 1 cards are
+        printed, because it decides whether they carry codes.
+      </dd>
+    </dl>
+  </section>
+
+  <footer>
+    <span class="progress" id="progress">0 of 26 done</span>
+    <span>Ticks are saved in this browser only. Nobody else sees them, and they won't follow you to another device.</span>
+    <button class="reset" id="reset">Clear all ticks</button>
+  </footer>
+
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const KEY = "guild-ranks-launch-plan-v1";
+  const boxes = Array.from(document.querySelectorAll("li.task input"));
+
+  boxes.forEach((box, i) => {
+    box.id = "task-" + i;
+    const title = box.parentElement.querySelector(".task-title");
+    if (title) { title.setAttribute("for", box.id); title.outerHTML =
+      `<label class="task-title" for="${box.id}">${title.innerHTML}</label>`; }
+  });
+
+  // outerHTML replaced the nodes, so re-query.
+  const inputs = Array.from(document.querySelectorAll("li.task input"));
+
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch { saved = {}; }
+
+  function paint() {
+    let done = 0;
+    inputs.forEach(box => {
+      box.closest("li.task").classList.toggle("is-done", box.checked);
+      if (box.checked) done++;
+    });
+    document.getElementById("progress").textContent =
+      `${done} of ${inputs.length} done`;
+  }
+
+  function persist() {
+    const out = {};
+    inputs.forEach(box => { if (box.checked) out[box.id] = true; });
+    try { localStorage.setItem(KEY, JSON.stringify(out)); } catch { /* private mode */ }
+  }
+
+  inputs.forEach(box => {
+    box.checked = !!saved[box.id];
+    box.addEventListener("change", () => { persist(); paint(); });
+  });
+
+  document.getElementById("reset").addEventListener("click", () => {
+    inputs.forEach(box => { box.checked = false; });
+    persist(); paint();
+  });
+
+  paint();
+})();
+</script>
