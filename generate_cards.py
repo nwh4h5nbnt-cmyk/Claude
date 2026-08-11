@@ -336,9 +336,29 @@ def quarantine(rows, bad_codes):
         write_printer_csv(group, level, slug)
         write_designer_csv(group, level, slug)
 
+    # The spreadsheet import, if one exists, should describe reality too: a
+    # held-back code is void, not waiting to be issued. Anyone rebuilding the
+    # sheet from these files then gets the right state without being told.
+    import_dir = os.path.join(OUTPUT_DIR, "for_airtable")
+    if os.path.isdir(import_dir):
+        for name in os.listdir(import_dir):
+            if not name.endswith(".csv"):
+                continue
+            ipath = os.path.join(import_dir, name)
+            with open(ipath, newline="", encoding="utf-8") as f:
+                irows = list(csv.DictReader(f))
+            for r in irows:
+                if r["card_code"] in bad:
+                    r["status"] = "void"
+            with open(ipath, "w", newline="", encoding="utf-8") as f:
+                w = csv.DictWriter(f, fieldnames=["card_code", "level", "status", "batch"])
+                w.writeheader()
+                w.writerows(irows)
+
     print(f"\n{len(bad)} code(s) held back from printing: {', '.join(sorted(bad))}")
-    print(f"Printer and designer files rewritten without them.")
-    print(f"Listed in {path} — set these rows to 'void' in the Cards tab.")
+    print("Printer and designer files rewritten without them.")
+    print("Spreadsheet import marks them 'void'.")
+    print(f"Listed in {path} — set these two rows to 'void' in the Cards tab.")
     return 0
 
 
