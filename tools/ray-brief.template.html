@@ -113,14 +113,35 @@
   </div>
 
   <section>
-    <h2><span class="n">Step 1</span>Open the script project</h2>
-    <p>Open the <strong>Loyalty</strong> spreadsheet → <code>Extensions → Apps Script</code>.</p>
-    <p>You should see <code>Code.gs</code> already there, with the form validator Reza pasted in.
-      <strong>Leave it alone.</strong> You'll be adding files beside it, not editing it.</p>
+    <h2><span class="n">Step 1</span>Bring Code.gs up to date</h2>
+    <p>Open the <strong>Loyalty</strong> spreadsheet → <code>Extensions → Apps Script</code>. You
+      should see <code>Code.gs</code> there, with the form validator Reza pasted in.</p>
     <p class="muted">
-      If <code>Code.gs</code> isn't there, you're in the wrong project — the script must be the one
-      bound to that spreadsheet, not a standalone one.
+      If it isn't there, you're in the wrong project — the script must be the one bound to that
+      spreadsheet, not a standalone one.
     </p>
+
+    <div class="warn">
+      <h3>Do this even though the form is working</h3>
+      <p>
+        The web app needs two things the form never did: <code>lookUpCard()</code>, and a
+        <code>validate()</code> that also returns the level and member name. Both were added to
+        <code>Code.gs</code> after Reza pasted his copy, so the version in the project is older than
+        the one <code>Webapp.gs</code> expects.
+      </p>
+      <p>
+        Skip this and step 6 fails with
+        <code>ReferenceError: lookUpCard is not defined</code>.
+      </p>
+    </div>
+
+    <p>Select everything in <code>Code.gs</code> and replace it with this. The form handling is
+      unchanged, so the signup form keeps working exactly as it does now.</p>
+
+    <div class="codewrap">
+      <button class="copy" data-target="code">Copy</button>
+      <pre id="code"><!--CODE_GS--></pre>
+    </div>
   </section>
 
   <section>

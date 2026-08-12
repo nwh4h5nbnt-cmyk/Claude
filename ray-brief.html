@@ -113,14 +113,311 @@
   </div>
 
   <section>
-    <h2><span class="n">Step 1</span>Open the script project</h2>
-    <p>Open the <strong>Loyalty</strong> spreadsheet → <code>Extensions → Apps Script</code>.</p>
-    <p>You should see <code>Code.gs</code> already there, with the form validator Reza pasted in.
-      <strong>Leave it alone.</strong> You'll be adding files beside it, not editing it.</p>
+    <h2><span class="n">Step 1</span>Bring Code.gs up to date</h2>
+    <p>Open the <strong>Loyalty</strong> spreadsheet → <code>Extensions → Apps Script</code>. You
+      should see <code>Code.gs</code> there, with the form validator Reza pasted in.</p>
     <p class="muted">
-      If <code>Code.gs</code> isn't there, you're in the wrong project — the script must be the one
-      bound to that spreadsheet, not a standalone one.
+      If it isn't there, you're in the wrong project — the script must be the one bound to that
+      spreadsheet, not a standalone one.
     </p>
+
+    <div class="warn">
+      <h3>Do this even though the form is working</h3>
+      <p>
+        The web app needs two things the form never did: <code>lookUpCard()</code>, and a
+        <code>validate()</code> that also returns the level and member name. Both were added to
+        <code>Code.gs</code> after Reza pasted his copy, so the version in the project is older than
+        the one <code>Webapp.gs</code> expects.
+      </p>
+      <p>
+        Skip this and step 6 fails with
+        <code>ReferenceError: lookUpCard is not defined</code>.
+      </p>
+    </div>
+
+    <p>Select everything in <code>Code.gs</code> and replace it with this. The form handling is
+      unchanged, so the signup form keeps working exactly as it does now.</p>
+
+    <div class="codewrap">
+      <button class="copy" data-target="code">Copy</button>
+      <pre id="code">/* ---------------------------------------------------------------------------
+   LEVEL-UP VALIDATOR — Google Sheets version
+
+   You do not need to understand this. Copy the whole file, paste it into the
+   Apps Script editor attached to your spreadsheet, and set up the trigger
+   described in SETUP.md step 6.
+
+   It handles both forms:
+
+     Signup form      -&gt; creates a member at level 0 (Unranked)
+     Activation form  -&gt; checks the card, then promotes them one rank
+
+   The four checks on every activation:
+
+     1. Is this card code real?                  no -&gt; reject
+     2. Has this card already been used?         yes -&gt; reject
+     3. Is this email a registered member?       no -&gt; reject
+     4. Are they exactly one level below it?     no -&gt; reject
+
+   Pass all four and it promotes the member and burns the card so it can never
+   be used again. Fail any and it writes the reason to the log and changes
+   nothing else.
+--------------------------------------------------------------------------- */
+
+
+// --- Names of your tabs ------------------------------------------------------
+// If you named any tab differently, change it here to match.
+
+const TAB_MEMBERS = &#x27;Members&#x27;;
+const TAB_CARDS = &#x27;Cards&#x27;;
+const TAB_LOG = &#x27;Activation log&#x27;;
+const TAB_SIGNUP_RESPONSES = &#x27;Signup responses&#x27;;
+const TAB_ACTIVATION_RESPONSES = &#x27;Activation responses&#x27;;
+
+
+// --- Your form question titles -----------------------------------------------
+// These must match the question titles in your Google Forms exactly, including
+// capitalisation. If you reword a question, reword it here too.
+
+const Q_NAME = &#x27;Name&#x27;;
+const Q_EMAIL = &#x27;Email&#x27;;
+const Q_CONSENT = &#x27;Consent&#x27;;
+const Q_CARD_CODE = &#x27;Card code&#x27;;
+const Q_CONFIRM_EMAIL = &#x27;Confirm your email&#x27;;
+
+
+// --- Column headers ----------------------------------------------------------
+// Looked up by name, so it does not matter what order your columns are in.
+
+const COL_MEMBER_EMAIL = &#x27;Email&#x27;;
+const COL_MEMBER_NAME = &#x27;Name&#x27;;
+const COL_MEMBER_LEVEL = &#x27;Level&#x27;;
+const COL_MEMBER_JOINED = &#x27;Joined&#x27;;
+const COL_MEMBER_LAST_ACTIVATED = &#x27;Last activated&#x27;;
+const COL_MEMBER_CONSENT = &#x27;Consent&#x27;;
+
+const COL_CARD_CODE = &#x27;Card code&#x27;;
+const COL_CARD_LEVEL = &#x27;Level&#x27;;
+const COL_CARD_STATUS = &#x27;Status&#x27;;
+const COL_CARD_MEMBER = &#x27;Member email&#x27;;
+const COL_CARD_ACTIVATED_AT = &#x27;Activated at&#x27;;
+
+// -----------------------------------------------------------------------------
+
+
+/**
+ * The single entry point. Google calls this whenever either form is submitted;
+ * we work out which one from the tab the response landed in.
+ */
+function onFormSubmit(e) {
+  const tab = e.range.getSheet().getName();
+
+  if (tab === TAB_SIGNUP_RESPONSES) {
+    handleSignup(e);
+  } else if (tab === TAB_ACTIVATION_RESPONSES) {
+    handleActivation(e);
+  }
+  // Anything else is not one of our forms — ignore it.
+}
+
+
+/**
+ * Someone filled in the signup form. Create them at level 0.
+ */
+function handleSignup(e) {
+  const answers = e.namedValues;
+  const email = firstAnswer(answers, Q_EMAIL).trim().toLowerCase();
+  const name = firstAnswer(answers, Q_NAME).trim();
+  const consent = firstAnswer(answers, Q_CONSENT).trim() !== &#x27;&#x27;;
+
+  if (!email) return;
+
+  const members = readTable(TAB_MEMBERS);
+
+  // Someone signing up twice should not become two members.
+  if (findRow(members, COL_MEMBER_EMAIL, email) !== -1) return;
+
+  const row = new Array(members.header.length).fill(&#x27;&#x27;);
+  setCell(members, row, COL_MEMBER_EMAIL, email);
+  setCell(members, row, COL_MEMBER_NAME, name);
+  setCell(members, row, COL_MEMBER_LEVEL, 0);
+  setCell(members, row, COL_MEMBER_JOINED, new Date());
+  setCell(members, row, COL_MEMBER_CONSENT, consent);
+  members.sheet.appendRow(row);
+}
+
+
+/**
+ * Someone scanned a card. Validate it, and promote them if it checks out.
+ */
+function handleActivation(e) {
+  const answers = e.namedValues;
+  const code = firstAnswer(answers, Q_CARD_CODE).trim().toUpperCase();
+  const email = firstAnswer(answers, Q_CONFIRM_EMAIL).trim().toLowerCase();
+
+  // Two people scanning at the same moment must not both succeed, so only one
+  // activation runs at a time. Without this, a shared code could slip through.
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(20000);
+  } catch (err) {
+    log(code, email, &#x27;rejected&#x27;, &#x27;System busy — please try again&#x27;);
+    return;
+  }
+
+  try {
+    const result = validate(code, email);
+    log(code, email, result.result, result.reason);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+
+/**
+ * The actual decision. Separated out so it can be tested on its own, and so
+ * callers other than the form handler can use it — the activation web app
+ * calls this directly rather than keeping a second copy of the rules.
+ *
+ * Always returns { result, reason }. On success it also returns `level` and
+ * `memberName`, which the web app needs to render the rank screen.
+ */
+function validate(code, email) {
+  const cards = readTable(TAB_CARDS);
+  const members = readTable(TAB_MEMBERS);
+
+  const cardRow = findRow(cards, COL_CARD_CODE, code);
+  if (cardRow === -1) {
+    return { result: &#x27;rejected&#x27;, reason: &#x27;No such card code&#x27; };
+  }
+
+  const status = String(getCell(cards, cardRow, COL_CARD_STATUS)).trim().toLowerCase();
+  if (status === &#x27;activated&#x27;) {
+    return { result: &#x27;rejected&#x27;, reason: &#x27;Card already activated&#x27; };
+  }
+  if (status === &#x27;void&#x27;) {
+    return { result: &#x27;rejected&#x27;, reason: &#x27;Card has been voided&#x27; };
+  }
+
+  const memberRow = findRow(members, COL_MEMBER_EMAIL, email);
+  if (memberRow === -1) {
+    return {
+      result: &#x27;rejected&#x27;,
+      reason: &#x27;No member with that email — they need to sign up first&#x27;,
+    };
+  }
+
+  const cardLevel = Number(getCell(cards, cardRow, COL_CARD_LEVEL));
+  const memberLevel = Number(getCell(members, memberRow, COL_MEMBER_LEVEL)) || 0;
+
+  if (memberLevel &gt;= cardLevel) {
+    return {
+      result: &#x27;rejected&#x27;,
+      reason: &#x27;Already level &#x27; + memberLevel + &#x27; — this is a level &#x27; + cardLevel + &#x27; card&#x27;,
+    };
+  }
+  if (memberLevel !== cardLevel - 1) {
+    return {
+      result: &#x27;rejected&#x27;,
+      reason: &#x27;Cannot skip levels — they are level &#x27; + memberLevel +
+              &#x27;, this card is level &#x27; + cardLevel,
+    };
+  }
+
+  // All four checks passed. Burn the card, promote the member.
+  const now = new Date();
+  writeCell(cards, cardRow, COL_CARD_STATUS, &#x27;activated&#x27;);
+  writeCell(cards, cardRow, COL_CARD_MEMBER, email);
+  writeCell(cards, cardRow, COL_CARD_ACTIVATED_AT, now);
+  writeCell(members, memberRow, COL_MEMBER_LEVEL, cardLevel);
+  writeCell(members, memberRow, COL_MEMBER_LAST_ACTIVATED, now);
+
+  return {
+    result: &#x27;activated&#x27;,
+    reason: &#x27;Promoted to level &#x27; + cardLevel,
+    level: cardLevel,
+    memberName: String(getCell(members, memberRow, COL_MEMBER_NAME) || &#x27;&#x27;),
+  };
+}
+
+
+/**
+ * What a card is worth before anyone commits to it — used by the web app to
+ * render &quot;Activate LVL 4 card&quot; on arrival, before an email has been entered.
+ * Read-only: it changes nothing.
+ */
+function lookUpCard(code) {
+  const cards = readTable(TAB_CARDS);
+  const row = findRow(cards, COL_CARD_CODE, code);
+  if (row === -1) return { found: false };
+  return {
+    found: true,
+    level: Number(getCell(cards, row, COL_CARD_LEVEL)),
+    spent: String(getCell(cards, row, COL_CARD_STATUS)).trim().toLowerCase() !== &#x27;unissued&#x27;,
+  };
+}
+
+
+// --- Small helpers -----------------------------------------------------------
+
+/** Reads a tab into memory, remembering where each named column sits. */
+function readTable(tabName) {
+  const sheet = SpreadsheetApp.getActive().getSheetByName(tabName);
+  if (!sheet) throw new Error(&#x27;No tab named &quot;&#x27; + tabName + &#x27;&quot;&#x27;);
+
+  const values = sheet.getDataRange().getValues();
+  const header = (values[0] || []).map(function (h) { return String(h).trim(); });
+
+  const index = {};
+  header.forEach(function (name, i) { index[name] = i; });
+
+  return { sheet: sheet, header: header, index: index, rows: values.slice(1) };
+}
+
+/** Row number of the first row whose column matches, or -1. Case-insensitive. */
+function findRow(table, column, value) {
+  const col = table.index[column];
+  if (col === undefined) throw new Error(&#x27;No column named &quot;&#x27; + column + &#x27;&quot;&#x27;);
+
+  const needle = String(value).trim().toLowerCase();
+  for (let i = 0; i &lt; table.rows.length; i++) {
+    if (String(table.rows[i][col]).trim().toLowerCase() === needle) return i;
+  }
+  return -1;
+}
+
+function getCell(table, row, column) {
+  return table.rows[row][table.index[column]];
+}
+
+/** Writes back to the real sheet. +2 because rows are 0-based and row 1 is the header. */
+function writeCell(table, row, column, value) {
+  const col = table.index[column];
+  if (col === undefined) throw new Error(&#x27;No column named &quot;&#x27; + column + &#x27;&quot;&#x27;);
+  table.sheet.getRange(row + 2, col + 1).setValue(value);
+  table.rows[row][col] = value;
+}
+
+function setCell(table, rowArray, column, value) {
+  const col = table.index[column];
+  if (col === undefined) throw new Error(&#x27;No column named &quot;&#x27; + column + &#x27;&quot;&#x27;);
+  rowArray[col] = value;
+}
+
+/** Google Forms hands every answer over as an array of one. */
+function firstAnswer(namedValues, question) {
+  const v = namedValues[question];
+  if (!v) return &#x27;&#x27;;
+  return Array.isArray(v) ? String(v[0] || &#x27;&#x27;) : String(v);
+}
+
+/** Every scan gets a log line, pass or fail. */
+function log(code, email, result, reason) {
+  const sheet = SpreadsheetApp.getActive().getSheetByName(TAB_LOG);
+  sheet.appendRow([new Date(), code, email, result, reason]);
+}
+</pre>
+    </div>
   </section>
 
   <section>

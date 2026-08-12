@@ -22,6 +22,7 @@ TEMPLATE = ROOT / "tools" / "ray-brief.template.html"
 OUTPUT = ROOT / "ray-brief.html"
 
 SOURCES = {
+    "<!--CODE_GS-->": ROOT / "google-sheets" / "Code.gs",
     "<!--WEBAPP_GS-->": ROOT / "google-sheets" / "webapp" / "Webapp.gs",
     "<!--INDEX_HTML-->": ROOT / "google-sheets" / "webapp" / "Index.html",
 }
