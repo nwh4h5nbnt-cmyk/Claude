@@ -304,6 +304,21 @@ def verify_images(rows):
     return unreadable
 
 
+def previously_held():
+    """Codes held back by an earlier run.
+
+    A hold has to be permanent. Once a code is dropped from a print run it gets
+    voided in the spreadsheet, so letting a later run resurrect it — because a
+    shorter URL happened to make its symbol easier to read — would put a card
+    in the stack that the database refuses. Held stays held.
+    """
+    path = os.path.join(OUTPUT_DIR, "do_not_print.csv")
+    if not os.path.exists(path):
+        return set()
+    with open(path, newline="", encoding="utf-8") as f:
+        return {r["card_code"] for r in csv.DictReader(f)}
+
+
 def quarantine(rows, bad_codes):
     """Drop codes the scan check could not read from everything printable.
 
@@ -323,7 +338,7 @@ def quarantine(rows, bad_codes):
         for r in rows:
             if r["card_code"] in bad:
                 w.writerow({"card_code": r["card_code"], "level": r["level"],
-                            "reason": "failed scan check"})
+                            "reason": "held back — failed a scan check"})
 
     groups = {}
     for r in keep:
@@ -402,6 +417,7 @@ def retarget(rows, url_template):
     bad = verify_images(rows)
     if bad is None:
         return 1
+    bad = set(bad) | previously_held()
     if bad:
         quarantine(rows, bad)
 
@@ -511,6 +527,7 @@ def main():
     bad = verify_images(all_new)
     if bad is None:
         return 1
+    bad = set(bad) | previously_held()
     if bad:
         quarantine(all_new, bad)
 

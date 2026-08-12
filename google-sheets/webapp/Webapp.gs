@@ -14,11 +14,17 @@
 /**
  * Serves the page. Google calls this when someone opens the web app URL.
  *
- * The card code arrives as ?c=CODE, which is what the printed QR carries.
+ * The card code arrives as ?card=CODE, which is what the printed QR carries.
  * Treat it as hostile: it is whatever a stranger typed into a URL bar.
+ *
+ * The parameter is deliberately not called "c". A single-letter c returns HTTP
+ * 400 on Google-hosted URLs — reproducible against both this app and an
+ * ordinary Google Form, so it is not something this script can fix. Every
+ * other name tested behaves normally, and there is nothing to gain from the
+ * short one.
  */
 function doGet(e) {
-  const code = ((e && e.parameter && e.parameter.c) || '').trim().toUpperCase();
+  const code = ((e && e.parameter && e.parameter.card) || '').trim().toUpperCase();
 
   const page = HtmlService.createTemplateFromFile('Index');
   page.code = code;

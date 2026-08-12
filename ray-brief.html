@@ -149,11 +149,17 @@
 /**
  * Serves the page. Google calls this when someone opens the web app URL.
  *
- * The card code arrives as ?c=CODE, which is what the printed QR carries.
+ * The card code arrives as ?card=CODE, which is what the printed QR carries.
  * Treat it as hostile: it is whatever a stranger typed into a URL bar.
+ *
+ * The parameter is deliberately not called &quot;c&quot;. A single-letter c returns HTTP
+ * 400 on Google-hosted URLs — reproducible against both this app and an
+ * ordinary Google Form, so it is not something this script can fix. Every
+ * other name tested behaves normally, and there is nothing to gain from the
+ * short one.
  */
 function doGet(e) {
-  const code = ((e &amp;&amp; e.parameter &amp;&amp; e.parameter.c) || &#x27;&#x27;).trim().toUpperCase();
+  const code = ((e &amp;&amp; e.parameter &amp;&amp; e.parameter.card) || &#x27;&#x27;).trim().toUpperCase();
 
   const page = HtmlService.createTemplateFromFile(&#x27;Index&#x27;);
   page.code = code;
@@ -443,9 +449,12 @@ function include(filename) {
 
   <section>
     <h2><span class="n">Step 6</span>Check the plumbing</h2>
-    <p>Open your <code>/exec</code> URL with a real code on the end:</p>
+    <p>Open your <code>/exec</code> URL with a real code on the end. Note the parameter is
+      <code>card</code>, not <code>c</code> — a single-letter <code>c</code> returns HTTP 400 on
+      Google-hosted URLs, reproducibly, on ordinary Google Forms too. Nothing in the script can fix
+      that, so it simply isn't used.</p>
     <div class="codewrap">
-      <pre class="short">https://script.google.com/macros/s/AKfycb.../exec?c=NREEKZ</pre>
+      <pre class="short">https://script.google.com/macros/s/AKfycb.../exec?card=NREEKZ</pre>
     </div>
     <p>Grab any <code>unissued</code> code from the Cards tab. You should see
       <strong>"Activate LVL 1 card"</strong>. Enter an email that exists in Members, submit, and you

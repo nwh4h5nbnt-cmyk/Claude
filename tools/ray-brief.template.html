@@ -226,9 +226,12 @@
 
   <section>
     <h2><span class="n">Step 6</span>Check the plumbing</h2>
-    <p>Open your <code>/exec</code> URL with a real code on the end:</p>
+    <p>Open your <code>/exec</code> URL with a real code on the end. Note the parameter is
+      <code>card</code>, not <code>c</code> — a single-letter <code>c</code> returns HTTP 400 on
+      Google-hosted URLs, reproducibly, on ordinary Google Forms too. Nothing in the script can fix
+      that, so it simply isn't used.</p>
     <div class="codewrap">
-      <pre class="short">https://script.google.com/macros/s/AKfycb.../exec?c=NREEKZ</pre>
+      <pre class="short">https://script.google.com/macros/s/AKfycb.../exec?card=NREEKZ</pre>
     </div>
     <p>Grab any <code>unissued</code> code from the Cards tab. You should see
       <strong>"Activate LVL 1 card"</strong>. Enter an email that exists in Members, submit, and you
