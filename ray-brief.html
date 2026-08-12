@@ -1,0 +1,270 @@
+<title>Guild Ranks — activation web app brief</title>
+
+<style>
+  :root {
+    --ground:#FAF8F3; --surface:#FFFFFF; --sunk:#F2EEE4; --line:#E3DDCF;
+    --line-soft:#EFEAE0; --text:#1C1B2E; --muted:#6C6884; --gold:#9A6F14;
+    --gold-soft:#F3E7C8; --flag:#A8412F; --flag-soft:#F7E4DF; --ok:#3D6B47;
+    color-scheme: light;
+    --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#0C0F26; --surface:#141936; --sunk:#10142C; --line:#2A2F5C;
+      --line-soft:#1E2347; --text:#E8E5F5; --muted:#948FB4; --gold:#E9B84C;
+      --gold-soft:#2A2314; --flag:#E0796A; --flag-soft:#2E1A18; --ok:#6FBF85;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0C0F26; --surface:#141936; --sunk:#10142C; --line:#2A2F5C;
+    --line-soft:#1E2347; --text:#E8E5F5; --muted:#948FB4; --gold:#E9B84C;
+    --gold-soft:#2A2314; --flag:#E0796A; --flag-soft:#2E1A18; --ok:#6FBF85;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin:0; padding:44px 22px 80px; background:var(--ground); color:var(--text);
+    font-family:var(--sans); font-size:16px; line-height:1.62; -webkit-font-smoothing:antialiased;
+  }
+  .doc { max-width:780px; margin:0 auto; display:flex; flex-direction:column; gap:38px; }
+
+  header { display:flex; flex-direction:column; gap:10px; }
+  .kicker { font-family:var(--mono); font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); }
+  h1 { margin:0; font-family:var(--serif); font-weight:400; font-size:clamp(30px,5vw,42px); line-height:1.15; text-wrap:balance; }
+  .standfirst { margin:0; color:var(--muted); font-size:17px; max-width:62ch; text-wrap:pretty; }
+
+  section { display:flex; flex-direction:column; gap:14px; }
+  h2 { margin:0; font-family:var(--serif); font-weight:400; font-size:24px; border-bottom:1px solid var(--line); padding-bottom:9px; text-wrap:balance; }
+  h3 { margin:8px 0 0; font-size:15px; font-weight:700; }
+  p { margin:0; text-wrap:pretty; }
+  .muted { color:var(--muted); }
+  ol, ul { margin:0; padding-left:22px; display:flex; flex-direction:column; gap:8px; }
+  li { text-wrap:pretty; }
+  code { font-family:var(--mono); font-size:0.9em; background:var(--sunk); padding:1.5px 5px; border-radius:2px; border:1px solid var(--line-soft); word-break:break-word; }
+  pre { margin:0; background:var(--sunk); border:1px solid var(--line); border-radius:3px; padding:15px; overflow-x:auto; font-family:var(--mono); font-size:12.5px; line-height:1.55; }
+
+  .callout { background:var(--gold-soft); border:1px solid var(--gold); border-radius:3px; padding:20px 22px; display:flex; flex-direction:column; gap:9px; }
+  .callout h2 { border:0; padding:0; font-family:var(--sans); font-size:13px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); }
+
+  .warn { background:var(--flag-soft); border-left:3px solid var(--flag); border-radius:2px; padding:16px 18px; display:flex; flex-direction:column; gap:8px; }
+  .warn h3 { margin:0; color:var(--flag); font-size:14.5px; }
+
+  .table-wrap { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-size:14.5px; min-width:440px; }
+  th { text-align:left; vertical-align:top; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); padding:0 14px 8px 0; font-weight:600; }
+  td { padding:9px 14px 9px 0; border-top:1px solid var(--line); vertical-align:top; }
+  td.k { font-family:var(--mono); font-size:13px; white-space:nowrap; }
+
+  .handback { background:var(--surface); border:1px solid var(--line); border-radius:3px; padding:22px 24px; display:flex; flex-direction:column; gap:12px; }
+  .handback h2 { border:0; padding:0; }
+</style>
+
+<div class="doc">
+
+  <header>
+    <span class="kicker">Guild Ranks · engineering brief</span>
+    <h1>Activation web app</h1>
+    <p class="standfirst">
+      Replace the activation Google Form with an Apps Script web app, so a member sees their new rank
+      and rolls the d20 on screen instead of getting a fixed "response recorded" message.
+    </p>
+  </header>
+
+  <div class="callout">
+    <h2>Scope</h2>
+    <p>
+      <strong>Activation only.</strong> The signup form stays a Google Form and keeps working exactly
+      as it does — don't touch it. This replaces the one screen a member sees after scanning a card.
+    </p>
+    <p class="muted">
+      Everything else stays put: same spreadsheet, same tabs, same columns, same card codes, same
+      rules. If this project ends up changing the sheet's schema, something has gone wrong.
+    </p>
+  </div>
+
+  <section>
+    <h2>Why it exists</h2>
+    <p>
+      Google Forms confirmation screens are static text. The form can't know whether the script
+      accepted or refused the scan, so it tells everyone the same thing. Staff currently have to look
+      at the spreadsheet to find out what happened.
+    </p>
+    <p>
+      The level-up moment is the payoff of the whole scheme — it's what makes people bother
+      activating at all. Right now it lands as a receipt.
+    </p>
+    <p class="muted">
+      There's a clickable prototype of the intended experience in <code>webapp/index.html</code>.
+      Lift the UI from it freely; it was built for this. Note that its validation logic is a
+      browser-side copy for demo purposes — the real rules live server-side, see below.
+    </p>
+  </section>
+
+  <section>
+    <h2>Architecture</h2>
+    <p>An Apps Script project bound to the existing <strong>Loyalty</strong> spreadsheet, deployed as
+      a web app. No external hosting, no new accounts, no new platform.</p>
+
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr><td class="k">doGet(e)</td><td>Serves the page. Reads the card code from <code>e.parameter.c</code>, which is what the QR carries. Should render the "activate this card" screen with the code already in hand — never ask the member to type it.</td></tr>
+          <tr><td class="k">google.script.run</td><td>Client calls the server to submit the email. Use <code>withSuccessHandler</code> / <code>withFailureHandler</code>. A form POST works too; either is fine.</td></tr>
+          <tr><td class="k">validate(code, email)</td><td>Already written, already tested. <strong>Call it. Do not reimplement it.</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Reuse the existing validator</h3>
+    <p>
+      <code>Code.gs</code> already contains a <code>validate(code, email)</code> function, deliberately
+      separated from the form-handling wrapper so it can be called from anywhere. It performs the four
+      checks, writes both records on success, and returns:
+    </p>
+<pre>{ result: "activated" | "rejected",
+  reason: "Promoted to level 4" | "Cannot skip levels — ..." }</pre>
+    <p>
+      It has 19 tests against it in <code>google-sheets/test_code.js</code>. Reimplementing the rules
+      in the web app would give the scheme two sources of truth that will drift, and the drift will
+      show up as members being promoted when they shouldn't be.
+    </p>
+    <p class="muted">
+      You will need a little more back than it currently returns — the member's name and their new
+      level, to render the screen. Extend the return value; don't fork the logic. Update the tests to
+      match.
+    </p>
+
+    <h3>The rules, for reference</h3>
+    <ol>
+      <li>Does this card code exist? No → reject.</li>
+      <li>Has it already been activated or voided? Yes → reject.</li>
+      <li>Is this email a registered member? No → reject.</li>
+      <li>Is the member at exactly <code>card.level - 1</code>? No → reject.</li>
+    </ol>
+    <p class="muted">
+      A rejection must leave Members and Cards completely untouched, and write one row to the
+      Activation log explaining why. That property is what makes a mis-scan free.
+    </p>
+
+    <h3>Concurrency</h3>
+    <p>
+      Keep the <code>LockService</code> lock around activation. Two people scanning at the same moment
+      must not both succeed — single-use codes are the whole security model, and Sheets reads are not
+      atomic.
+    </p>
+  </section>
+
+  <section>
+    <h2>Screens</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>State</th><th>Shows</th></tr></thead>
+        <tbody>
+          <tr><td class="k">arrive</td><td>Rank the card grants, one email field, activate button. Code carried invisibly.</td></tr>
+          <tr><td class="k">activated</td><td>Big rank numeral, rank name, "roll for loot" and the d20. This is the moment — give it room.</td></tr>
+          <tr><td class="k">refused</td><td>Plain "ask a member of staff", the reason, and reassurance that the card wasn't spent.</td></tr>
+          <tr><td class="k">no code</td><td>Someone opened the bare URL. Explain they need to scan a card.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted">
+      Design for a phone, at night, on bar wifi. Assume a slow connection and a cracked screen. The
+      d20 roll can be client-side and cosmetic — it doesn't affect rank, so it needs no server call.
+    </p>
+  </section>
+
+  <section>
+    <h2>Deployment</h2>
+
+    <div class="warn">
+      <h3>The trap that kills printed cards</h3>
+      <p>
+        A web app's URL contains its <strong>deployment ID</strong>. Creating a
+        <em>new deployment</em> mints a <strong>new URL</strong> — and every card already printed
+        points at the old one. That is an unrecoverable reprint.
+      </p>
+      <p>
+        To ship changes, always: <strong>Deploy → Manage deployments → (pencil) Edit → Version: New
+        version → Deploy.</strong> That publishes new code at the same URL.
+      </p>
+      <p class="muted">
+        Only ever create a second deployment deliberately, for a test URL that no card points at.
+      </p>
+    </div>
+
+    <h3>Access settings</h3>
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr><td class="k">Execute as</td><td><strong>Me</strong> — the script needs the owner's rights to write to the sheet.</td></tr>
+          <tr><td class="k">Who has access</td><td><strong>Anyone</strong> — not "Anyone with a Google account". Members are standing at a bar; requiring a Google sign-in will kill activation rates and exclude anyone not signed in on their phone.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="muted">
+      "Execute as me" plus "anyone" means an anonymous visitor runs code with the owner's sheet
+      access. That's expected here — but it's also why the four checks matter. Treat
+      <code>e.parameter.c</code> as hostile input: it's whatever someone typed into a URL bar. Never
+      interpolate it into anything without escaping.
+    </p>
+  </section>
+
+  <section>
+    <h2>Acceptance criteria</h2>
+    <p>Not done until all of these hold:</p>
+    <ol>
+      <li>Scanning a valid level 1 card as an unranked member promotes them and shows the rank screen with the d20.</li>
+      <li>Scanning the same card again is refused, with the reason on screen.</li>
+      <li>Scanning a rank more than one above the member is refused as level-skipping.</li>
+      <li>An unregistered email is refused and told to sign up.</li>
+      <li>A made-up code in the URL is refused.</li>
+      <li>Every one of the above writes exactly one Activation log row, and refusals change nothing in Members or Cards.</li>
+      <li><code>node google-sheets/test_code.js</code> still passes after any change to the validator.</li>
+      <li>The page works on a phone, and on the venue's actual wifi.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Timing — this is on the critical path</h2>
+    <p>
+      The QR codes currently point at the Google Form. Switching to the web app means
+      <strong>every card's QR has to be regenerated</strong> against the new URL.
+    </p>
+    <p>
+      That is free today and a full reprint after the cards are printed. So the deployment URL is
+      needed <strong>before the print run</strong>, not after.
+    </p>
+    <p class="muted">
+      Send the <code>/exec</code> URL over as soon as the app is deployed, even if the UI isn't
+      finished. Regenerating takes ten seconds and the card codes themselves never change, so it can
+      happen in parallel with the rest of the build.
+    </p>
+
+    <h3>One thing worth raising early</h3>
+    <p>
+      Apps Script web app URLs are long, which makes a dense QR — the same problem the Google Forms
+      URL has. A short domain redirecting to <code>/exec</code> would fix both, and let the printed
+      code stay at 20mm instead of 25mm. About £12 a year. Worth deciding before the artwork is
+      final.
+    </p>
+  </section>
+
+  <div class="handback">
+    <h2>What to send back</h2>
+    <ul>
+      <li><strong>The deployed <code>/exec</code> URL</strong> — first, and before the UI is polished</li>
+      <li><strong>Confirmation of the six acceptance tests</strong>, particularly the refusals</li>
+      <li><strong>Whether you extended <code>validate()</code></strong>, and that the test suite still passes</li>
+      <li><strong>A note on whether the signup form stays a Google Form</strong> — it should, but say so if you disagree</li>
+    </ul>
+    <p class="muted">
+      If anything here conflicts with what's already in the sheet, the sheet wins — it has real
+      structure Reza built and tested. Flag the conflict rather than changing the schema around it.
+    </p>
+  </div>
+
+</div>
