@@ -357,7 +357,12 @@ function handleActivation(e) {
 
 
 /**
- * The actual decision. Separated out so it can be tested on its own.
+ * The actual decision. Separated out so it can be tested on its own, and so
+ * callers other than the form handler can use it — the activation web app
+ * calls this directly rather than keeping a second copy of the rules.
+ *
+ * Always returns { result, reason }. On success it also returns `level` and
+ * `memberName`, which the web app needs to render the rank screen.
  */
 function validate(code, email) {
   const cards = readTable(TAB_CARDS);
@@ -409,7 +414,29 @@ function validate(code, email) {
   writeCell(members, memberRow, COL_MEMBER_LEVEL, cardLevel);
   writeCell(members, memberRow, COL_MEMBER_LAST_ACTIVATED, now);
 
-  return { result: &#x27;activated&#x27;, reason: &#x27;Promoted to level &#x27; + cardLevel };
+  return {
+    result: &#x27;activated&#x27;,
+    reason: &#x27;Promoted to level &#x27; + cardLevel,
+    level: cardLevel,
+    memberName: String(getCell(members, memberRow, COL_MEMBER_NAME) || &#x27;&#x27;),
+  };
+}
+
+
+/**
+ * What a card is worth before anyone commits to it — used by the web app to
+ * render &quot;Activate LVL 4 card&quot; on arrival, before an email has been entered.
+ * Read-only: it changes nothing.
+ */
+function lookUpCard(code) {
+  const cards = readTable(TAB_CARDS);
+  const row = findRow(cards, COL_CARD_CODE, code);
+  if (row === -1) return { found: false };
+  return {
+    found: true,
+    level: Number(getCell(cards, row, COL_CARD_LEVEL)),
+    spent: String(getCell(cards, row, COL_CARD_STATUS)).trim().toLowerCase() !== &#x27;unissued&#x27;,
+  };
 }
 
 

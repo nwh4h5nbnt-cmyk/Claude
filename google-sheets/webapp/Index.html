@@ -1,0 +1,149 @@
+<!--
+  ACTIVATION WEB APP — the page
+
+  Add this as an HTML file named exactly "Index" in the same Apps Script
+  project (File → New → HTML file → name it Index, no .html suffix).
+
+  This is a working skeleton, not the finished thing. Every state is wired up
+  and the server round-trip works, so you can deploy it, confirm the plumbing,
+  and send the URL onward before spending any time on how it looks.
+
+  The visual design lives in webapp/index.html in the repo — the clickable
+  prototype. Lift from it freely; it was built for this.
+
+  <?!= ?> is Apps Script templating: it runs server-side at page render, before
+  anything reaches the browser. That is how the card code and level get in
+  without a round trip.
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <style>
+    body {
+      margin: 0; padding: 32px 20px; background: #0C0F26; color: #E8E5F5;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.55;
+    }
+    .wrap { max-width: 420px; margin: 0 auto; }
+    h1 { font-family: Georgia, serif; font-weight: 400; font-size: 26px; margin: 0 0 6px; }
+    p { margin: 0 0 14px; color: #948FB4; }
+    label { display: block; font-size: 12px; letter-spacing: 0.06em;
+            text-transform: uppercase; color: #948FB4; margin-bottom: 6px; }
+    input {
+      width: 100%; font: inherit; font-size: 16px; padding: 11px 12px;
+      background: #0C0F26; color: #E8E5F5; border: 1px solid #2C3163; border-radius: 6px;
+    }
+    button {
+      width: 100%; font: inherit; font-size: 14px; font-weight: 600; margin-top: 16px;
+      padding: 13px; border: 0; border-radius: 6px; background: #E9B84C; color: #241A05;
+      text-transform: uppercase; letter-spacing: 0.04em; cursor: pointer;
+    }
+    button[disabled] { opacity: 0.5; cursor: default; }
+    .numeral { font-family: Georgia, serif; font-size: 78px; color: #E9B84C;
+               text-align: center; line-height: 1; }
+    .rank { text-align: center; letter-spacing: 0.28em; text-transform: uppercase; }
+    .bad { border-left: 2px solid #E2606A; padding: 12px 14px; background: #151A3C;
+           border-radius: 4px; color: #E8E5F5; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- STATE: no code in the URL -->
+  <div id="s-nocode" hidden>
+    <h1>Scan a card</h1>
+    <p>This page opens from the QR code on the back of a Guild Ranks card.
+       Ask bar staff if yours will not scan.</p>
+  </div>
+
+  <!-- STATE: code is not a real card -->
+  <div id="s-unknown" hidden>
+    <h1>Card not recognised</h1>
+    <p>Show this screen to a member of staff — they can sort it out.</p>
+  </div>
+
+  <!-- STATE: ready to activate -->
+  <div id="s-arrive" hidden>
+    <h1>Activate LVL <?!= card.level ?> card</h1>
+    <p>Confirm your email to attach this card to your run.</p>
+    <label for="email">Your email</label>
+    <input id="email" type="email" autocomplete="email" inputmode="email"
+           placeholder="you@example.com">
+    <button id="go">Activate</button>
+  </div>
+
+  <!-- STATE: working -->
+  <div id="s-busy" hidden><p>Checking…</p></div>
+
+  <!-- STATE: activated -->
+  <div id="s-ok" hidden>
+    <h1>Rank up</h1>
+    <div class="numeral" id="ok-level"></div>
+    <div class="rank" id="ok-name"></div>
+    <p style="text-align:center; margin-top:18px;">
+      Show this screen to bar staff and roll the d20.
+    </p>
+    <!-- TODO: the dice. Client-side and cosmetic — it does not affect rank,
+         so it needs no server call. See the prototype. -->
+  </div>
+
+  <!-- STATE: refused -->
+  <div id="s-no" hidden>
+    <h1>Something isn't right</h1>
+    <p>Ask a member of staff.</p>
+    <div class="bad" id="no-reason"></div>
+    <p style="margin-top:14px; font-size:13px;">Your card has not been used up.</p>
+  </div>
+
+</div>
+
+<script>
+  // Rendered server-side, so these are already correct when the page loads.
+  var CODE  = <?= JSON.stringify(code) ?>;
+  var CARD  = <?= JSON.stringify(card) ?>;
+
+  function show(id) {
+    ['s-nocode','s-unknown','s-arrive','s-busy','s-ok','s-no']
+      .forEach(function (s) { document.getElementById(s).hidden = (s !== id); });
+  }
+
+  if (!CODE)            show('s-nocode');
+  else if (!CARD.found) show('s-unknown');
+  else                  show('s-arrive');
+
+  var btn = document.getElementById('go');
+  if (btn) btn.addEventListener('click', function () {
+    var email = document.getElementById('email').value.trim();
+    if (!email) { document.getElementById('email').focus(); return; }
+
+    btn.disabled = true;
+    show('s-busy');
+
+    google.script.run
+      .withSuccessHandler(function (out) {
+        if (out.result === 'activated') {
+          document.getElementById('ok-level').textContent = out.level;
+          document.getElementById('ok-name').textContent = out.memberName || '';
+          show('s-ok');
+        } else {
+          document.getElementById('no-reason').textContent = out.reason;
+          show('s-no');
+          btn.disabled = false;
+        }
+      })
+      .withFailureHandler(function (err) {
+        // Bar wifi drops. Say so plainly and let them retry.
+        document.getElementById('no-reason').textContent =
+          'Could not reach the server. Check your connection and try again.';
+        show('s-no');
+        btn.disabled = false;
+      })
+      .activateCard(CODE, email);
+  });
+</script>
+</body>
+</html>

@@ -315,6 +315,51 @@ test("a response from an unrelated tab is ignored", () => {
 });
 
 
+// --- What the web app needs back ---------------------------------------------
+
+test("a successful activation returns the level and the member's name", () => {
+    const { api } = load(freshTabs());
+    const out = api.validate("B9V4LR", "sam@example.com");
+    assert(out.level === 3, `expected level 3, got ${out.level}`);
+    assert(out.memberName === "Sam", `expected Sam, got ${out.memberName}`);
+});
+
+test("a rejection carries no level or name to render", () => {
+    const { api } = load(freshTabs());
+    const out = api.validate("CCC333", "sam@example.com");
+    assert(out.level === undefined, "rejections must not report a level");
+    assert(out.memberName === undefined, "rejections must not report a name");
+});
+
+test("lookUpCard reports a real unspent card", () => {
+    const { api } = load(freshTabs());
+    const out = api.lookUpCard("B9V4LR");
+    assert(out.found === true, "should be found");
+    assert(out.level === 3, `expected level 3, got ${out.level}`);
+    assert(out.spent === false, "should not be spent");
+});
+
+test("lookUpCard reports a spent card as spent", () => {
+    const { api } = load(freshTabs());
+    assert(api.lookUpCard("DDD444").spent === true, "activated card should read as spent");
+    assert(api.lookUpCard("EEE555").spent === true, "voided card should read as spent");
+});
+
+test("lookUpCard reports an unknown code as not found", () => {
+    const { api } = load(freshTabs());
+    assert(api.lookUpCard("NOTREAL").found === false, "should not be found");
+});
+
+test("lookUpCard changes nothing", () => {
+    const tabs = freshTabs();
+    const before = JSON.stringify([tabs.Members, tabs.Cards, tabs["Activation log"]]);
+    const { api } = load(tabs);
+    api.lookUpCard("B9V4LR");
+    assert(JSON.stringify([tabs.Members, tabs.Cards, tabs["Activation log"]]) === before,
+        "a read-only lookup must not write anything");
+});
+
+
 // --- Runner ------------------------------------------------------------------
 
 let passed = 0, failed = 0;
