@@ -825,6 +825,48 @@ function include(filename) {
     </p>
   </section>
 
+  <section>
+    <h2>Errors we have actually hit</h2>
+    <p class="muted">All three of these came up during the first build. The page shows them plainly
+      on a white Apps Script screen, so read the message before changing anything.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Message</th><th>Cause and fix</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="k">ReferenceError:<br>lookUpCard is not<br>defined</td>
+            <td><code>Code.gs</code> is the older version, from before the web app existed. Do step 1
+              — paste the current one over it.</td>
+          </tr>
+          <tr>
+            <td class="k">SyntaxError:<br>Unexpected token</td>
+            <td>The file was hand-edited and something broke. <strong>Don't edit these files — paste
+              them whole.</strong> The versions here are already correct, including the
+              <code>card</code> parameter, so there is nothing to change by hand.</td>
+          </tr>
+          <tr>
+            <td class="k">Sorry, unable to<br>open the file at<br>present</td>
+            <td>That's Google Drive, not the web app — it means a spreadsheet or the script editor
+              was opened rather than the <code>/exec</code> URL. Check the link. If it really is the
+              <code>/exec</code> URL, then "Who has access" is not set to <strong>Anyone</strong>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="warn">
+      <h3>After any change, redeploy — or nothing you did is live</h3>
+      <p>
+        Saving in the editor does not update the deployed app. <strong>Deploy → Manage deployments →
+        pencil icon → Version: New version → Deploy.</strong>
+      </p>
+      <p class="muted">
+        And never <em>New deployment</em>, which changes the URL and orphans every printed card.
+      </p>
+    </div>
+  </section>
+
   <div class="handback">
     <h2>Send back</h2>
     <ul>
