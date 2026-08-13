@@ -137,7 +137,10 @@ When staff reach it, that's the reorder signal.
 
 - **Keep the QR dark-on-light.** Inverted QR codes fail on a lot of phone
   scanners. If your card art is dark, reserve a light panel for the code.
-- **20mm square minimum**, with a clear quiet zone no artwork intrudes into.
+- **25mm square minimum.** The deployment URL is long, so the symbol runs to
+  53 modules; at 20mm each module is 0.38mm, under what a cheap phone camera
+  manages in a dark bar. The four-module quiet zone is baked into the PNGs —
+  don't crop it.
 - **Print the code in plain text underneath the QR.** It's the fallback when
   the QR won't scan and the lookup key when someone contacts you about a
   problem. The alphabet deliberately excludes `I`, `L`, `O`, `U`, `0` and `1`
@@ -162,7 +165,7 @@ put it in the least precious spot on the back, away from the stamp grid.
 Only relevant if someone changes a validator:
 
 ```
-node google-sheets/test_code.js          # 19 tests
+node google-sheets/test_code.js          # 25 tests
 node airtable/test_automation_script.js  # 13 tests
 ```
 
