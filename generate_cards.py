@@ -43,6 +43,12 @@ CODE_LENGTH = 6
 # four; anything less and some symbols quietly stop scanning.
 QUIET_ZONE = 4
 
+# Printed size of the QR on a sticker, in millimetres. 25 rather than 20
+# because the deployment URL is long: the symbol runs to 53 modules, and at
+# 20mm each module is 0.38mm — under what a cheap phone camera manages in a
+# dark bar. At 25mm it is 0.47mm.
+STICKER_QR_MM = 25
+
 # How many cards to make per level, first run. These come out of
 # estimate_print_run.py at its default assumptions: 250 signups over a
 # six-month window, six stamps per card, one stamp per visit.
@@ -212,23 +218,29 @@ def write_qr_images(rows, level, batch_slug):
     return d
 
 
-def write_proof_pdf(rows, level, batch_slug, qr_dir):
-    """A4 sheet of every QR at true printed size (20mm) with its code beneath.
+def write_sticker_sheet(rows, level, batch_slug, qr_dir):
+    """A4 sheets of stickers, QR at true printed size, ready to cut and apply.
 
-    Two uses: check a batch scans correctly before accepting delivery, or
-    print onto adhesive A4 and cut out as stickers if you go the sticker route
-    instead of variable-data printing.
+    Print onto adhesive A4 and cut along the guides. Also serves as the proof
+    for checking a batch scans before it goes anywhere near a card.
+
+    Every sticker carries its own rank. Once these are cut apart a loose
+    sticker is otherwise unidentifiable, and a level 4 sticker on a level 5
+    card produces a card that will be refused at the bar with nothing to
+    explain why. The rank is the cheapest possible guard against that.
     """
-    d = os.path.join(OUTPUT_DIR, "proof_sheets")
+    d = os.path.join(OUTPUT_DIR, "sticker_sheets")
     os.makedirs(d, exist_ok=True)
-    path = os.path.join(d, f"level_{level:02d}_{batch_slug}_proof.pdf")
+    path = os.path.join(d, f"level_{level:02d}_{batch_slug}_stickers.pdf")
 
     page_w, page_h = A4
-    cols, per_page = 4, 24
-    margin_x, margin_y = 15 * mm, 20 * mm
-    cell_w = (page_w - 2 * margin_x) / cols
-    cell_h = 40 * mm
-    qr_size = 20 * mm
+    cols, rows_per_page = 5, 6
+    per_page = cols * rows_per_page
+    qr_size = STICKER_QR_MM * mm
+
+    cell_w, cell_h = 38 * mm, 40 * mm
+    margin_x = (page_w - cols * cell_w) / 2
+    top = page_h - 26 * mm
 
     c = canvas.Canvas(path, pagesize=A4)
 
@@ -236,23 +248,34 @@ def write_proof_pdf(rows, level, batch_slug, qr_dir):
         if i % per_page == 0:
             if i:
                 c.showPage()
-            c.setFont("Helvetica-Bold", 11)
-            c.drawString(margin_x, page_h - margin_y + 6 * mm,
-                         f"LEVEL {r['level']}  ·  batch {r['batch']}")
+            c.setFont("Helvetica-Bold", 13)
+            c.drawString(margin_x, page_h - 17 * mm,
+                         f"LVL {r['level']} STICKERS  ·  {r['batch']}")
             c.setFont("Helvetica", 8)
-            c.drawRightString(page_w - margin_x, page_h - margin_y + 6 * mm,
-                              f"page {i // per_page + 1} · QR shown at 20mm actual size")
+            c.drawRightString(page_w - margin_x, page_h - 17 * mm,
+                              f"page {i // per_page + 1}  ·  "
+                              f"QR at {STICKER_QR_MM}mm actual size  ·  "
+                              f"LVL {r['level']} cards only")
 
         slot = i % per_page
         col, row = slot % cols, slot // cols
         x = margin_x + col * cell_w
-        y = page_h - margin_y - (row + 1) * cell_h
+        y = top - (row + 1) * cell_h
+
+        # Cut guide. Light enough not to matter if the scissors wander.
+        c.setStrokeColorRGB(0.82, 0.82, 0.82)
+        c.setLineWidth(0.25)
+        c.rect(x, y, cell_w, cell_h)
 
         c.drawImage(os.path.join(qr_dir, f"{r['card_code']}.png"),
-                    x + (cell_w - qr_size) / 2, y + 12 * mm,
+                    x + (cell_w - qr_size) / 2, y + 10 * mm,
                     width=qr_size, height=qr_size)
-        c.setFont("Courier-Bold", 10)
-        c.drawCentredString(x + cell_w / 2, y + 6 * mm, r["card_code"])
+        c.setFont("Courier-Bold", 9)
+        c.drawCentredString(x + cell_w / 2, y + 5.5 * mm, r["card_code"])
+        c.setFont("Helvetica", 6)
+        c.setFillColorRGB(0.45, 0.45, 0.45)
+        c.drawCentredString(x + cell_w / 2, y + 2 * mm, f"LVL {r['level']}")
+        c.setFillColorRGB(0, 0, 0)
 
     c.save()
     return path
@@ -350,6 +373,11 @@ def quarantine(rows, bad_codes):
         slug = label.replace(" ", "-").replace("/", "-")
         write_printer_csv(group, level, slug)
         write_designer_csv(group, level, slug)
+        # The sticker sheets are the product now, not just a proof — a held-back
+        # code left on one would get stuck to a real card.
+        qr_dir = os.path.join(OUTPUT_DIR, "qr_images", f"level_{level:02d}_{slug}")
+        if os.path.isdir(qr_dir):
+            write_sticker_sheet(group, level, slug, qr_dir)
 
     # The spreadsheet import, if one exists, should describe reality too: a
     # held-back code is void, not waiting to be issued. Anyone rebuilding the
@@ -371,7 +399,7 @@ def quarantine(rows, bad_codes):
                 w.writerows(irows)
 
     print(f"\n{len(bad)} code(s) held back from printing: {', '.join(sorted(bad))}")
-    print("Printer and designer files rewritten without them.")
+    print("Printer, designer and sticker files rewritten without them.")
     print("Spreadsheet import marks them 'void'.")
     print(f"Listed in {path} — set these two rows to 'void' in the Cards tab.")
     return 0
@@ -409,7 +437,7 @@ def retarget(rows, url_template):
         write_printer_csv(group, level, slug)
         write_designer_csv(group, level, slug)
         qr_dir = write_qr_images(group, level, slug)
-        write_proof_pdf(group, level, slug, qr_dir)
+        write_sticker_sheet(group, level, slug, qr_dir)
         print(f"Level {level:>2}  {len(group):>4} cards redrawn   ({label})")
 
     write_master(MASTER_CSV, rows)
@@ -504,10 +532,10 @@ def main():
         printer_csv = write_printer_csv(rows, level, batch_slug)
         designer_csv = write_designer_csv(rows, level, batch_slug)
         qr_dir = write_qr_images(rows, level, batch_slug)
-        proof = write_proof_pdf(rows, level, batch_slug, qr_dir)
+        stickers = write_sticker_sheet(rows, level, batch_slug, qr_dir)
         print(f"Level {level:>2}  {count:>4} cards   {printer_csv}")
         print(f"{'':13}{'':>4}          {designer_csv}")
-        print(f"{'':13}{'':>4}          {proof}")
+        print(f"{'':13}{'':>4}          {stickers}")
 
     write_master(MASTER_CSV, existing_rows + all_new)
     airtable_csv = write_airtable_csv(all_new, batch_slug)

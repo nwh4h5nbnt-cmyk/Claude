@@ -69,7 +69,7 @@ together in Google Forms. No hosting, no server, no monthly bill.
 | `for_printer/` | One CSV per level | Your printer, alongside that level's artwork |
 | `for_airtable/` | Cards table import | Airtable, in setup step 2 |
 | `qr_images/` | One PNG per card, zipped per level | Your printer, if they merge from images rather than URLs. Send them the zip for the level being printed. |
-| `proof_sheets/` | A4 sheets, QRs at true 20mm size | Checking a batch scans before you accept delivery. Also printable onto adhesive A4 and cut up, if you go the sticker route instead of variable-data printing. |
+| `sticker_sheets/` | A4 sheets, QRs at true 25mm size, 30 per page with cut guides | **The production files.** Print onto adhesive A4, cut, apply by hand. Every sticker carries its rank so a loose one can't end up on the wrong card. |
 
 Current run: **675 cards** across all ten levels, from 250 at level 1 down to
 25 at each of the top ranks. Those quantities come out of
@@ -142,8 +142,13 @@ When staff reach it, that's the reorder signal.
   the QR won't scan and the lookup key when someone contacts you about a
   problem. The alphabet deliberately excludes `I`, `L`, `O`, `U`, `0` and `1`
   so nothing gets misread.
-- **One print job per level.** Ten jobs, each with one artwork file and one
-  CSV. There's then no way for the wrong codes to land on the wrong design.
+- **Two separate print jobs.** The cards carry no codes at all — bulk print,
+  ten designs, cheapest per unit. The stickers are a second job from
+  `sticker_sheets/`, applied by hand.
+- **Print the sticker sheets at 100%**, never "fit to page". Scaling shrinks
+  the code below what phone cameras manage in dim light.
+- **Reserve 30 × 34mm** of flat, light, unprinted space on the card back for
+  the sticker to land on, clear of the stamp grid.
 - **Scan three cards from every delivered batch** before accepting it.
 
 The QR is scanned once, within a minute of the card being handed over, and is
