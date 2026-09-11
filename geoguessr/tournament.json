@@ -1,0 +1,31 @@
+{
+  "tournament": "GeoGuessr Tournament",
+  "host": "",
+  "updated": "2026-09-11T11:28:13+00:00",
+  "sample": false,
+  "aliases": {},
+  "maps": [
+    {
+      "n": 1,
+      "name": "Map 1",
+      "mode": "",
+      "max": 25000,
+      "played": "2026-09-11",
+      "scores": {
+        "Open World": 2377,
+        "Hahahehe": 1395
+      }
+    },
+    {
+      "n": 2,
+      "name": "Map 2",
+      "mode": "",
+      "max": 25000,
+      "played": "2026-09-11",
+      "scores": {
+        "Hahahehe": 3724,
+        "Open World": 593
+      }
+    }
+  ]
+}
