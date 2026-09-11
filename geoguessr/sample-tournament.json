@@ -1,0 +1,58 @@
+{
+  "tournament": "Sample Tournament",
+  "host": "",
+  "scoring": "Raw GeoGuessr points, cumulative. A map you miss counts as 0.",
+  "updated": "",
+  "sample": true,
+  "aliases": {},
+  "maps": [
+    {
+      "n": 1,
+      "name": "A Community World",
+      "mode": "Moving · 5 rounds",
+      "max": 25000,
+      "played": "2026-09-04",
+      "scores": {
+        "quaternion": 23104, "Mapsy": 22688, "bellend_bob": 22015, "Tilde": 21550,
+        "OrangeJuiceGG": 21207, "Nadia_K": 20984, "sheeeesh": 20110, "Pommes": 19877,
+        "Vex": 19402, "hollowpoint": 19045, "Marta B": 18620, "kiwi_on_toast": 18233,
+        "GnomeChomsky": 17810, "Ravi": 17466, "Ferro": 16902, "plum": 16455,
+        "Dunkel": 15988, "SeagullEnjoyer": 15320, "Tam": 14877, "Bo": 14201,
+        "Larkspur": 13640, "mossy": 12915, "Ines": 12388, "RubberDuck99": 11702,
+        "Teddy": 10844, "Fennel": 9930, "VanGo": 8615, "onions": 7402
+      }
+    },
+    {
+      "n": 2,
+      "name": "A Balanced World",
+      "mode": "Moving · 5 rounds",
+      "max": 25000,
+      "played": "2026-09-04",
+      "scores": {
+        "Mapsy": 23561, "quaternion": 22840, "Tilde": 22377, "Nadia_K": 21996,
+        "bellend_bob": 21148, "Vex": 20740, "OrangeJuiceGG": 20302, "Pommes": 20066,
+        "hollowpoint": 19588, "sheeeesh": 19113, "kiwi_on_toast": 18944, "Ravi": 18201,
+        "Marta B": 17733, "plum": 17290, "GnomeChomsky": 16855, "Dunkel": 16408,
+        "Ferro": 15966, "Tam": 15277, "SeagullEnjoyer": 14830, "Larkspur": 14355,
+        "Bo": 13688, "Ines": 13104, "mossy": 12470, "Teddy": 11899,
+        "RubberDuck99": 11033, "VanGo": 9744, "Fennel": 9012, "Nils": 8330
+      }
+    },
+    {
+      "n": 3,
+      "name": "An Arbitrary Rural World",
+      "mode": "No move · 5 rounds",
+      "max": 25000,
+      "played": "2026-09-11",
+      "scores": {
+        "quaternion": 21877, "Tilde": 21402, "Nadia_K": 20915, "Mapsy": 20388,
+        "Vex": 19960, "hollowpoint": 19511, "Pommes": 18847, "bellend_bob": 18290,
+        "kiwi_on_toast": 17866, "Ravi": 17344, "sheeeesh": 16902, "plum": 16470,
+        "Ferro": 15933, "Dunkel": 15401, "GnomeChomsky": 14988, "Marta B": 14522,
+        "Larkspur": 14066, "Tam": 13590, "Ines": 13011, "mossy": 12488,
+        "Bo": 11930, "SeagullEnjoyer": 11377, "Teddy": 10802, "Nils": 10244,
+        "RubberDuck99": 9688, "Fennel": 8903, "onions": 8114, "VanGo": 7455
+      }
+    }
+  ]
+}

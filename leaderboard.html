@@ -1,0 +1,561 @@
+<title>Party Mode Standings</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:wght@400;500;600;700&display=swap">
+
+<style>
+  :root {
+    --ground:#EDF1EE; --surface:#FFFFFF; --sunk:#E4EAE6; --raise:#F6F9F7;
+    --line:#CBD7D0; --line-soft:#DFE7E2;
+    --text:#122019; --muted:#5C6E65; --faint:#869890;
+    --accent:#0B6E4F; --accent-soft:#DCEDE5; --accent-line:#9CC9B6;
+    --brass:#A87516; --brass-soft:#F5E9CE; --brass-line:#DCC079;
+    --up:#2F7D4F; --down:#B04A38;
+    color-scheme: light;
+    --display:"Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+    --sans:"Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#0B1512; --surface:#12201B; --sunk:#0E1A16; --raise:#182E26;
+      --line:#283D34; --line-soft:#1C2E27;
+      --text:#E4EDE7; --muted:#8AA298; --faint:#63796F;
+      --accent:#3FBE8E; --accent-soft:#12352A; --accent-line:#2A6350;
+      --brass:#D9AE4E; --brass-soft:#33280F; --brass-line:#6B5527;
+      --up:#5FC98C; --down:#E0836F;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0B1512; --surface:#12201B; --sunk:#0E1A16; --raise:#182E26;
+    --line:#283D34; --line-soft:#1C2E27;
+    --text:#E4EDE7; --muted:#8AA298; --faint:#63796F;
+    --accent:#3FBE8E; --accent-soft:#12352A; --accent-line:#2A6350;
+    --brass:#D9AE4E; --brass-soft:#33280F; --brass-line:#6B5527;
+    --up:#5FC98C; --down:#E0836F;
+    color-scheme: dark;
+  }
+
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding-block:0 64px; padding-left:20px; padding-right:20px;
+    background:var(--ground); color:var(--text);
+    font-family:var(--sans); font-size:15px; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page { max-width:1120px; margin:0 auto; display:flex; flex-direction:column; gap:26px; }
+  .num { font-family:var(--mono); font-variant-numeric:tabular-nums; }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; }
+
+  /* ---------- masthead: lat/long graticule ---------- */
+  .masthead {
+    position:relative; overflow:hidden; margin-top:26px;
+    border:1px solid var(--line); border-radius:4px; background:var(--surface);
+    padding:26px 24px 22px;
+  }
+  .masthead::before {
+    content:""; position:absolute; inset:0; pointer-events:none; opacity:.55;
+    background-image:
+      repeating-linear-gradient(to right, var(--line-soft) 0 1px, transparent 1px 44px),
+      repeating-linear-gradient(to bottom, var(--line-soft) 0 1px, transparent 1px 44px);
+  }
+  .masthead::after {
+    content:""; position:absolute; left:0; right:0; top:50%; height:1px;
+    background:var(--accent-line); opacity:.5; pointer-events:none;
+  }
+  .masthead > * { position:relative; }
+  .eyebrow {
+    font-family:var(--mono); font-size:11px; font-weight:500;
+    letter-spacing:.17em; text-transform:uppercase; color:var(--accent); margin:0 0 6px;
+  }
+  h1 {
+    margin:0; font-family:var(--display); font-weight:700;
+    font-size:clamp(28px,5.2vw,44px); line-height:1.05; letter-spacing:-.018em;
+    text-wrap:balance;
+  }
+  .strap { margin:10px 0 0; color:var(--muted); max-width:62ch; text-wrap:pretty; }
+  .facts { display:flex; flex-wrap:wrap; gap:0 30px; margin:18px 0 0; padding:0; }
+  .facts div { display:flex; flex-direction:column; gap:1px; }
+  .facts dt { font-family:var(--mono); font-size:10.5px; letter-spacing:.14em;
+              text-transform:uppercase; color:var(--faint); }
+  .facts dd { margin:0; font-family:var(--mono); font-size:17px; font-weight:600;
+              font-variant-numeric:tabular-nums; }
+
+  .sample-note {
+    display:flex; gap:10px; align-items:flex-start;
+    border:1px dashed var(--brass-line); background:var(--brass-soft);
+    border-radius:4px; padding:12px 14px; color:var(--text); font-size:13.5px;
+  }
+  .sample-note b { font-weight:700; }
+  .sample-note .tag {
+    flex:none; font-family:var(--mono); font-size:10px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--brass); font-weight:600; padding-top:2px;
+  }
+
+  /* ---------- podium ---------- */
+  .podium { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  .seat {
+    background:var(--surface); border:1px solid var(--line); border-radius:4px;
+    padding:16px 16px 14px; display:flex; flex-direction:column; gap:3px; min-width:0;
+  }
+  .seat--1 { border-color:var(--brass-line); background:
+    linear-gradient(180deg, var(--brass-soft) 0%, var(--surface) 62%); }
+  .seat .pos {
+    font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--muted);
+  }
+  .seat--1 .pos { color:var(--brass); }
+  .seat .who {
+    font-family:var(--display); font-weight:700; font-size:clamp(17px,2.4vw,22px);
+    line-height:1.2; overflow-wrap:anywhere;
+  }
+  .seat .pts { font-family:var(--mono); font-size:19px; font-weight:600;
+               font-variant-numeric:tabular-nums; }
+  .seat .delta { font-size:12.5px; color:var(--muted); }
+
+  /* ---------- panels + tabs ---------- */
+  .panel { background:var(--surface); border:1px solid var(--line); border-radius:4px; }
+  .bar {
+    display:flex; flex-wrap:wrap; align-items:center; gap:10px;
+    padding:11px 14px; border-bottom:1px solid var(--line-soft);
+  }
+  .tabs { display:flex; gap:2px; background:var(--sunk); padding:2px;
+          border-radius:3px; border:1px solid var(--line-soft); }
+  .tab {
+    appearance:none; border:0; background:transparent; cursor:pointer;
+    font-family:var(--sans); font-size:12.5px; font-weight:600; color:var(--muted);
+    padding:6px 13px; border-radius:2px; line-height:1.2;
+  }
+  .tab[aria-selected="true"] { background:var(--surface); color:var(--text);
+                               box-shadow:0 1px 2px rgba(0,0,0,.09); }
+  .tab:hover:not([aria-selected="true"]) { color:var(--text); }
+  .search {
+    flex:1 1 190px; min-width:0; appearance:none;
+    border:1px solid var(--line); border-radius:3px; background:var(--ground);
+    color:var(--text); font-family:var(--sans); font-size:13.5px; padding:7px 11px;
+  }
+  .search::placeholder { color:var(--faint); }
+  .count { font-family:var(--mono); font-size:11.5px; color:var(--faint);
+           letter-spacing:.04em; white-space:nowrap; }
+
+  .scroller { overflow-x:auto; }
+
+  /* ---------- standings table ---------- */
+  table { border-collapse:collapse; width:100%; }
+  thead th {
+    position:sticky; top:0; z-index:2; background:var(--raise);
+    font-family:var(--mono); font-size:10.5px; font-weight:600; letter-spacing:.13em;
+    text-transform:uppercase; color:var(--muted); text-align:right;
+    padding:9px 12px; border-bottom:1px solid var(--line); white-space:nowrap;
+  }
+  thead th.l { text-align:left; }
+  th.sortable { cursor:pointer; user-select:none; }
+  th.sortable:hover { color:var(--text); }
+  th[aria-sort] { color:var(--accent); }
+  th .caret { opacity:.85; }
+  tbody td {
+    padding:9px 12px; border-bottom:1px solid var(--line-soft);
+    text-align:right; white-space:nowrap;
+  }
+  tbody tr:last-child td { border-bottom:0; }
+  tbody tr:hover td { background:var(--raise); }
+  td.l { text-align:left; }
+
+  .rank { font-family:var(--mono); font-weight:600; font-variant-numeric:tabular-nums;
+          color:var(--muted); width:1%; }
+  tr.lead .rank { color:var(--brass); }
+  .move { font-family:var(--mono); font-size:11.5px; width:1%; padding-left:0; }
+  .move.up { color:var(--up); } .move.down { color:var(--down); } .move.flat { color:var(--faint); }
+  .player { font-weight:600; max-width:230px; overflow:hidden; text-overflow:ellipsis; }
+  tr.lead .player { color:var(--brass); }
+  .total { font-family:var(--mono); font-weight:600; font-size:14.5px;
+           font-variant-numeric:tabular-nums; }
+  .track { width:110px; }
+  .track span { display:block; height:5px; border-radius:2px; background:var(--sunk);
+                overflow:hidden; }
+  .track span i { display:block; height:100%; background:var(--accent-line); }
+  tr.lead .track span i { background:var(--brass-line); }
+  .dim { color:var(--muted); font-family:var(--mono); font-variant-numeric:tabular-nums;
+         font-size:13px; }
+  .none { color:var(--faint); }
+
+  /* ---------- map grid ---------- */
+  .grid th.player-col, .grid td.player-col {
+    position:sticky; left:0; z-index:1; background:var(--surface);
+    text-align:left; border-right:1px solid var(--line);
+  }
+  .grid thead th.player-col { z-index:3; background:var(--raise); }
+  .grid tbody tr:hover td.player-col { background:var(--raise); }
+  .grid td { font-family:var(--mono); font-variant-numeric:tabular-nums; font-size:13px; }
+  .grid td.player-col { font-family:var(--sans); font-size:15px; font-weight:600; }
+  .grid .m1 { background:var(--brass-soft); color:var(--brass); font-weight:600; }
+  .grid .m2, .grid .m3 { background:var(--accent-soft); color:var(--accent); font-weight:500; }
+  .grid .mapname { font-family:var(--sans); font-size:12px; font-weight:600;
+                   text-transform:none; letter-spacing:0; color:var(--text); }
+  .grid .mapmeta { font-family:var(--mono); font-size:10px; letter-spacing:.1em;
+                   color:var(--faint); font-weight:400; }
+  .grid thead th { text-align:right; }
+
+  .empty { padding:34px 16px; text-align:center; color:var(--muted); }
+
+  /* ---------- footer ---------- */
+  footer { display:flex; flex-direction:column; gap:8px; color:var(--muted);
+           font-size:13px; border-top:1px solid var(--line); padding-top:16px; }
+  footer h2 { margin:0; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em;
+              text-transform:uppercase; color:var(--faint); font-weight:600; }
+  footer ul { margin:0; padding-left:18px; display:flex; flex-direction:column; gap:5px; }
+  footer li { text-wrap:pretty; }
+  .stamp { font-family:var(--mono); font-size:11.5px; color:var(--faint); }
+
+  [hidden] { display:none !important; }
+
+  @media (max-width:980px) { .c-gap  { display:none; } }
+  @media (max-width:880px) { .c-best { display:none; } }
+  @media (max-width:720px) { .c-avg  { display:none; } .track { width:70px; } }
+  @media (max-width:620px) {
+    .c-last { display:none; }
+    .podium { grid-template-columns:1fr; }
+    .masthead { padding:20px 16px 18px; }
+    body { padding-left:14px; padding-right:14px; }
+  }
+  @media (prefers-reduced-motion:reduce) { * { transition:none !important; animation:none !important; } }
+</style>
+
+<div class="page">
+
+  <header class="masthead">
+    <p class="eyebrow" id="eyebrow">Cumulative standings</p>
+    <h1 id="title">Tournament</h1>
+    <p class="strap" id="strap"></p>
+    <dl class="facts" id="facts"></dl>
+  </header>
+
+  <div class="sample-note" id="sampleNote" hidden>
+    <span class="tag">Sample</span>
+    <span><b>These are example results, not real ones.</b> They show what the board looks
+    like mid-tournament. The first real map replaces all of them.</span>
+  </div>
+
+  <section class="podium" id="podium" aria-label="Current top three"></section>
+
+  <section class="panel">
+    <div class="bar">
+      <div class="tabs" role="tablist" aria-label="View">
+        <button class="tab" id="tab-standings" role="tab" aria-selected="true"
+                aria-controls="view-standings" type="button">Standings</button>
+        <button class="tab" id="tab-grid" role="tab" aria-selected="false"
+                aria-controls="view-grid" type="button">Map by map</button>
+      </div>
+      <input class="search" id="search" type="search" autocomplete="off"
+             placeholder="Find a player…" aria-label="Find a player">
+      <span class="count" id="count"></span>
+    </div>
+
+    <div id="view-standings" role="tabpanel" aria-labelledby="tab-standings">
+      <div class="scroller">
+        <table id="standings">
+          <thead><tr id="headRow"></tr></thead>
+          <tbody id="body"></tbody>
+        </table>
+      </div>
+      <p class="empty" id="emptyStandings" hidden>No player matches that name.</p>
+    </div>
+
+    <div id="view-grid" role="tabpanel" aria-labelledby="tab-grid" hidden>
+      <div class="scroller">
+        <table class="grid" id="gridTable">
+          <thead><tr id="gridHead"></tr></thead>
+          <tbody id="gridBody"></tbody>
+        </table>
+      </div>
+      <p class="empty" id="emptyGrid" hidden>No player matches that name.</p>
+    </div>
+  </section>
+
+  <footer>
+    <h2>How the scoring works</h2>
+    <ul id="rules"></ul>
+    <p class="stamp" id="stamp"></p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var DATA = {"tournament":"GeoGuessr Tournament","host":"","updated":"2026-09-11T11:28:13+00:00","sample":false,"aliases":{},"maps":[{"n":1,"name":"Map 1","mode":"","max":25000,"played":"2026-09-11","scores":{"Open World":2377,"Hahahehe":1395}},{"n":2,"name":"Map 2","mode":"","max":25000,"played":"2026-09-11","scores":{"Hahahehe":3724,"Open World":593}}]}{"tournament":"","maps":[],"sample":false,"updated":""};
+  var maps = DATA.maps || [];
+
+  /* ---------- derive ---------- */
+  var players = [];
+  var seen = Object.create(null);
+  maps.forEach(function (m) {
+    Object.keys(m.scores).forEach(function (p) {
+      if (!seen[p]) { seen[p] = true; players.push(p); }
+    });
+  });
+
+  function totalsAfter(k) {
+    var t = Object.create(null), i, p;
+    for (i = 0; i < players.length; i++) t[players[i]] = 0;
+    for (i = 0; i < k && i < maps.length; i++) {
+      var s = maps[i].scores;
+      for (p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] += s[p];
+    }
+    return t;
+  }
+
+  /* Competition ranking: equal totals share a place, the next place skips. */
+  function ranksOf(totals) {
+    var order = players.slice().sort(function (a, b) { return totals[b] - totals[a]; });
+    var r = Object.create(null), prev = null, prevRank = 0;
+    order.forEach(function (p, i) {
+      var rank = (totals[p] === prev) ? prevRank : i + 1;
+      r[p] = rank; prev = totals[p]; prevRank = rank;
+    });
+    return r;
+  }
+
+  var totals = totalsAfter(maps.length);
+  var ranks = ranksOf(totals);
+  var prevRanks = maps.length > 1 ? ranksOf(totalsAfter(maps.length - 1)) : null;
+  var lastMap = maps.length ? maps[maps.length - 1] : null;
+
+  var rows = players.map(function (p) {
+    var played = 0, best = 0, bestMap = "";
+    maps.forEach(function (m) {
+      if (p in m.scores) {
+        played++;
+        if (m.scores[p] > best) { best = m.scores[p]; bestMap = "Map " + m.n; }
+      }
+    });
+    return {
+      name: p,
+      total: totals[p],
+      rank: ranks[p],
+      move: prevRanks ? prevRanks[p] - ranks[p] : null,
+      played: played,
+      avg: played ? Math.round(totals[p] / played) : 0,
+      best: best,
+      bestMap: bestMap,
+      last: lastMap && (p in lastMap.scores) ? lastMap.scores[p] : null
+    };
+  });
+
+  var leader = rows.reduce(function (a, b) { return !a || b.total > a.total ? b : a; }, null);
+  var leadTotal = leader ? leader.total : 0;
+  rows.forEach(function (r) { r.gap = leadTotal - r.total; });
+
+  /* ---------- format ---------- */
+  var nf = new Intl.NumberFormat();
+  function n(v) { return nf.format(v); }
+  function ordinal(i) { return ["1st", "2nd", "3rd"][i] || (i + 1) + "th"; }
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+
+  /* ---------- masthead ---------- */
+  var pointsTotal = rows.reduce(function (a, r) { return a + r.total; }, 0);
+  document.getElementById("title").textContent = DATA.tournament || "Tournament";
+  document.getElementById("eyebrow").textContent =
+    maps.length ? "Cumulative standings · through map " + maps.length : "Cumulative standings";
+  document.getElementById("strap").textContent = maps.length
+    ? "Party mode wipes the board every time the map changes. This page keeps the running total: "
+      + "every map " + (DATA.host ? DATA.host + " has" : "we have") + " played so far, added up."
+    : "Party mode wipes the board every time the map changes. This page keeps the running total. "
+      + "Nothing has been played yet.";
+
+  var facts = [
+    ["Maps played", n(maps.length)],
+    ["Players", n(players.length)],
+    ["Leader", leader ? n(leadTotal) : "—"],
+    ["Points awarded", n(pointsTotal)]
+  ];
+  document.getElementById("facts").innerHTML = facts.map(function (f) {
+    return "<div><dt>" + esc(f[0]) + "</dt><dd>" + esc(f[1]) + "</dd></div>";
+  }).join("");
+
+  if (DATA.sample) document.getElementById("sampleNote").hidden = false;
+
+  /* ---------- podium ---------- */
+  var top = rows.slice().sort(function (a, b) { return a.rank - b.rank || a.name.localeCompare(b.name); }).slice(0, 3);
+  document.getElementById("podium").innerHTML = top.map(function (r, i) {
+    var delta = i === 0
+      ? (top[1] ? "leads by " + n(top[1] ? r.total - top[1].total : 0) : "only entrant")
+      : n(r.gap) + " behind";
+    return '<article class="seat seat--' + (i + 1) + '">'
+      + '<span class="pos">' + ordinal(r.rank - 1) + "</span>"
+      + '<span class="who">' + esc(r.name) + "</span>"
+      + '<span class="pts">' + n(r.total) + "</span>"
+      + '<span class="delta">' + esc(delta) + "</span>"
+      + "</article>";
+  }).join("");
+
+  /* ---------- standings table ---------- */
+  var COLS = [
+    { key: "rank",   label: "#",      cls: "l",      sort: null },
+    { key: "move",   label: "",       cls: "l",      sort: null },
+    { key: "name",   label: "Player", cls: "l",      sort: "name" },
+    { key: "total",  label: "Total",  cls: "",       sort: "total" },
+    { key: "track",  label: "",       cls: "",       sort: null },
+    { key: "played", label: "Maps",   cls: "",       sort: "played" },
+    { key: "avg",    label: "Avg",    cls: "c-avg",  sort: "avg" },
+    { key: "best",   label: "Best",   cls: "c-best", sort: "best" },
+    { key: "last",   label: "Last map", cls: "c-last", sort: "last" },
+    { key: "gap",    label: "Gap",    cls: "c-gap",  sort: "gap" }
+  ];
+
+  var sortKey = "total", sortDir = -1, filter = "";
+
+  function drawHead() {
+    document.getElementById("headRow").innerHTML = COLS.map(function (c) {
+      var cls = [c.cls, c.sort ? "sortable" : ""].filter(Boolean).join(" ");
+      var active = c.sort === sortKey;
+      var caret = active ? ' <span class="caret">' + (sortDir < 0 ? "▾" : "▴") + "</span>" : "";
+      return "<th" + (cls ? ' class="' + cls + '"' : "")
+        + (c.sort ? ' data-sort="' + c.sort + '" scope="col"' : ' scope="col"')
+        + (active ? ' aria-sort="' + (sortDir < 0 ? "descending" : "ascending") + '"' : "")
+        + ">" + esc(c.label) + caret + "</th>";
+    }).join("");
+  }
+
+  function moveCell(r) {
+    if (r.move === null) return '<td class="move flat"></td>';
+    if (r.move > 0) return '<td class="move up">▲' + r.move + "</td>";
+    if (r.move < 0) return '<td class="move down">▼' + (-r.move) + "</td>";
+    return '<td class="move flat">–</td>';
+  }
+
+  function drawBody() {
+    var list = rows.filter(function (r) {
+      return !filter || r.name.toLowerCase().indexOf(filter) !== -1;
+    });
+    list.sort(function (a, b) {
+      var x = a[sortKey], y = b[sortKey];
+      if (typeof x === "string") return sortDir * x.localeCompare(y) * -1;
+      if (x === null) x = -1;
+      if (y === null) y = -1;
+      return (x - y) * sortDir || a.name.localeCompare(b.name);
+    });
+
+    document.getElementById("body").innerHTML = list.map(function (r) {
+      var pct = leadTotal ? Math.round((r.total / leadTotal) * 100) : 0;
+      return '<tr' + (r.rank === 1 ? ' class="lead"' : "") + ">"
+        + '<td class="rank l">' + r.rank + "</td>"
+        + moveCell(r)
+        + '<td class="l player">' + esc(r.name) + "</td>"
+        + '<td class="total">' + n(r.total) + "</td>"
+        + '<td class="track"><span><i style="width:' + pct + '%"></i></span></td>'
+        + '<td class="dim">' + r.played + "/" + maps.length + "</td>"
+        + '<td class="dim c-avg">' + n(r.avg) + "</td>"
+        + '<td class="dim c-best">' + n(r.best) + "</td>"
+        + '<td class="dim c-last">' + (r.last === null ? '<span class="none">—</span>' : n(r.last)) + "</td>"
+        + '<td class="dim c-gap">' + (r.gap ? "−" + n(r.gap) : "—") + "</td>"
+        + "</tr>";
+    }).join("");
+
+    document.getElementById("emptyStandings").hidden = list.length > 0;
+    document.getElementById("count").textContent =
+      list.length === rows.length
+        ? rows.length + " players"
+        : list.length + " of " + rows.length + " players";
+  }
+
+  /* ---------- map-by-map grid ---------- */
+  function drawGrid() {
+    var mapRanks = maps.map(function (m) {
+      var names = Object.keys(m.scores).sort(function (a, b) { return m.scores[b] - m.scores[a]; });
+      var r = Object.create(null);
+      names.forEach(function (p, i) { r[p] = i + 1; });
+      return r;
+    });
+
+    document.getElementById("gridHead").innerHTML =
+      '<th class="player-col l" scope="col">Player</th>'
+      + maps.map(function (m) {
+          return '<th scope="col"><span class="mapname">' + esc(m.name) + "</span><br>"
+            + '<span class="mapmeta">MAP ' + m.n + (m.mode ? " · " + esc(m.mode) : "") + "</span></th>";
+        }).join("")
+      + '<th scope="col"><span class="mapname">Total</span><br><span class="mapmeta">CUMULATIVE</span></th>';
+
+    var list = rows.slice().sort(function (a, b) { return a.rank - b.rank || a.name.localeCompare(b.name); })
+      .filter(function (r) { return !filter || r.name.toLowerCase().indexOf(filter) !== -1; });
+
+    document.getElementById("gridBody").innerHTML = list.map(function (r) {
+      return "<tr>"
+        + '<td class="player-col">' + esc(r.name) + "</td>"
+        + maps.map(function (m, i) {
+            if (!(r.name in m.scores)) return '<td class="none">—</td>';
+            var pos = mapRanks[i][r.name];
+            var cls = pos === 1 ? "m1" : (pos <= 3 ? "m" + pos : "");
+            return "<td" + (cls ? ' class="' + cls + '"' : "") + ' title="'
+              + esc(m.name) + " · " + ordinal(pos - 1) + '">' + n(m.scores[r.name]) + "</td>";
+          }).join("")
+        + '<td class="total">' + n(r.total) + "</td>"
+        + "</tr>";
+    }).join("");
+
+    document.getElementById("emptyGrid").hidden = list.length > 0;
+  }
+
+  /* ---------- footer ---------- */
+  var perMap = maps.length ? maps[0].max || 25000 : 25000;
+  document.getElementById("rules").innerHTML = [
+    "Totals are raw GeoGuessr points added straight up across every map — no placement "
+      + "points, no weighting. A perfect map is " + n(perMap) + ".",
+    "A map you sat out counts as <b>0</b>. The <b>Maps</b> column shows how many of the "
+      + maps.length + " a player actually played, so you can see who is short.",
+    "Equal totals share a place — two players on the same score are both 4th, and the next "
+      + "player is 6th.",
+    "The <b>▲▼</b> column is the change in overall position caused by the most recent map."
+  ].map(function (t) { return "<li>" + t + "</li>"; }).join("");
+
+  var stamped = DATA.updated ? new Date(DATA.updated) : null;
+  document.getElementById("stamp").textContent = stamped && !isNaN(stamped)
+    ? "Updated " + stamped.toLocaleString(undefined, {
+        dateStyle: "medium", timeStyle: "short"
+      }) + (lastMap ? " · after " + lastMap.name : "")
+    : "";
+
+  /* ---------- wiring ---------- */
+  document.getElementById("headRow").addEventListener("click", function (e) {
+    var th = e.target.closest("th[data-sort]");
+    if (!th) return;
+    var k = th.getAttribute("data-sort");
+    if (k === sortKey) sortDir = -sortDir;
+    else { sortKey = k; sortDir = k === "name" ? 1 : -1; }
+    drawHead(); drawBody();
+  });
+
+  document.getElementById("search").addEventListener("input", function (e) {
+    filter = e.target.value.trim().toLowerCase();
+    drawBody(); drawGrid();
+  });
+
+  var tabs = [
+    [document.getElementById("tab-standings"), document.getElementById("view-standings")],
+    [document.getElementById("tab-grid"), document.getElementById("view-grid")]
+  ];
+  tabs.forEach(function (pair) {
+    pair[0].addEventListener("click", function () {
+      tabs.forEach(function (p) {
+        var on = p === pair;
+        p[0].setAttribute("aria-selected", String(on));
+        p[1].hidden = !on;
+      });
+    });
+  });
+
+  if (!maps.length) {
+    document.getElementById("emptyStandings").textContent =
+      "No maps recorded yet. The board fills in after the first one.";
+    document.getElementById("emptyStandings").hidden = false;
+  }
+
+  drawHead(); drawBody(); drawGrid();
+})();
+</script>
